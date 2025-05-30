@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36127.28
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PreBuiltMEFDemo", "PreBuiltMEFDemo\PreBuiltMEFDemo.csproj", "{A9E22E14-AEF3-4CA7-A1A3-1B213525FCAC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pmad.PreBuiltMEF.SourceGeneration", "Pmad.PreBuiltMEF.SourceGeneration\Pmad.PreBuiltMEF.SourceGeneration.csproj", "{6943EC3C-6CB2-4263-B7C1-CEFDF299AF9E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pmad.PreBuiltMEF", "Pmad.PreBuiltMEF\Pmad.PreBuiltMEF.csproj", "{917DD8BB-6C49-48FF-9292-B5E22DB73348}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PreBuiltMEFDemoAOT", "PreBuiltMEFDemoAOT\PreBuiltMEFDemoAOT.csproj", "{AAAB0F97-110E-592A-31DF-D204A208EE68}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pmad.PreBuiltMEF.MsDependencyInjection", "Pmad.PreBuiltMEF.MsDependencyInjection\Pmad.PreBuiltMEF.MsDependencyInjection.csproj", "{BD4D6BB0-F7B0-45D2-905F-44634BFD2F6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pmad.PreBuiltMEF.MsDependencyInjection.SourceGeneration", "Pmad.PreBuiltMEF.MsDependencyInjection.SourceGeneration\Pmad.PreBuiltMEF.MsDependencyInjection.SourceGeneration.csproj", "{6C8049DF-19AB-4190-BB67-C45CCFE8D0E8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A9E22E14-AEF3-4CA7-A1A3-1B213525FCAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9E22E14-AEF3-4CA7-A1A3-1B213525FCAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9E22E14-AEF3-4CA7-A1A3-1B213525FCAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9E22E14-AEF3-4CA7-A1A3-1B213525FCAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6943EC3C-6CB2-4263-B7C1-CEFDF299AF9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6943EC3C-6CB2-4263-B7C1-CEFDF299AF9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6943EC3C-6CB2-4263-B7C1-CEFDF299AF9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6943EC3C-6CB2-4263-B7C1-CEFDF299AF9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{917DD8BB-6C49-48FF-9292-B5E22DB73348}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{917DD8BB-6C49-48FF-9292-B5E22DB73348}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{917DD8BB-6C49-48FF-9292-B5E22DB73348}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{917DD8BB-6C49-48FF-9292-B5E22DB73348}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAAB0F97-110E-592A-31DF-D204A208EE68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAAB0F97-110E-592A-31DF-D204A208EE68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAAB0F97-110E-592A-31DF-D204A208EE68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAAB0F97-110E-592A-31DF-D204A208EE68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD4D6BB0-F7B0-45D2-905F-44634BFD2F6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD4D6BB0-F7B0-45D2-905F-44634BFD2F6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD4D6BB0-F7B0-45D2-905F-44634BFD2F6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD4D6BB0-F7B0-45D2-905F-44634BFD2F6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C8049DF-19AB-4190-BB67-C45CCFE8D0E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C8049DF-19AB-4190-BB67-C45CCFE8D0E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C8049DF-19AB-4190-BB67-C45CCFE8D0E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C8049DF-19AB-4190-BB67-C45CCFE8D0E8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7792DC51-DBC3-4327-8FAC-7D25CEA26A2D}
+	EndGlobalSection
+EndGlobal
