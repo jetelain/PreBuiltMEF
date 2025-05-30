@@ -21,25 +21,14 @@ namespace PreBuiltMEFDemo
             //var container2 = new CompositionContainer(catalog2);
             //var b2 = container2.GetExportedValue<IExportB>();
 
-            //BenchmarkRunner.Run<CatalogBenchmark>(null, args);
-            BenchmarkRunner.Run< ComposeBenchmark>(null, args);
+            BenchmarkRunner.Run<CatalogBenchmark>(null, args);
+            //BenchmarkRunner.Run< ComposeBenchmark>(null, args);
             //BenchmarkRunner.Run<FullcaseBenchmark>(null, args);
-
-            //var sw2 = Stopwatch.StartNew();
-            //CreateCatalogPrebuilt().ToList();
-            //sw2.Stop();
-            //Console.WriteLine($"{sw2.ElapsedTicks} ticks");
-            //var sw1 = Stopwatch.StartNew();
-            //CreateCatalogReflection().ToList();
-            //sw1.Stop();
-            //Console.WriteLine($"{sw1.ElapsedTicks} ticks");
 
             //for (int i = 0; i < 10000000; ++i)
             //{
             //    CreateCatalogPrebuilt();
             //}
-
-
         }
 
         public static IExportB CreateContainerAndGetPartB(ComposablePartCatalog catalog1)

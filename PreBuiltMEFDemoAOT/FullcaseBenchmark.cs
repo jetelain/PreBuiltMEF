@@ -3,6 +3,7 @@
 namespace PreBuiltMEFDemoAOT
 {
     [MemoryDiagnoser]
+    [MediumRunJob(BenchmarkDotNet.Jobs.RuntimeMoniker.NativeAot80)]
     [MediumRunJob]
     public class FullcaseBenchmark
     {

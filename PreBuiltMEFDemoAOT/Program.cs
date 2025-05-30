@@ -17,10 +17,8 @@ namespace PreBuiltMEFDemoAOT
             //var container2 = new CompositionContainer(catalog2);
             //var b2 = container2.GetExportedValue<IExportB>();
 
-            var config = DefaultConfig.Instance
-                .AddJob(Job.Default.WithRuntime(NativeAotRuntime.Net80));
-            //BenchmarkRunner.Run<FullcaseBenchmark>(config, args);
-            BenchmarkRunner.Run<ComposeBenchmark>(config, args);
+            //BenchmarkRunner.Run<CatalogBenchmark>(null, args);
+            BenchmarkRunner.Run<ComposeBenchmark>(null, args);
         }
 
         public static IExportB CreateContainerAndGetPartB(ComposablePartCatalog catalog1)
