@@ -6,10 +6,10 @@ namespace Pmad.PreBuiltMEF
 {
     internal abstract class PreBuiltImportDefinition<TPart, TImport> : PreBuiltImportDefinition<TPart> where TPart : class
     {
-        private Expression<Func<ExportDefinition, bool>>? _constraint;
+        protected Expression<Func<ExportDefinition, bool>>? _constraint;
 
-        protected PreBuiltImportDefinition(string contractName, ImportCardinality cardinality = ImportCardinality.ExactlyOne) 
-            : base(MetadataHelper.NoConstraint, contractName, cardinality)
+        protected PreBuiltImportDefinition(string contractName, ImportCardinality cardinality = ImportCardinality.ExactlyOne, bool isPrerequisite = true) 
+            : base(MetadataHelper.NoConstraint, contractName, cardinality, isPrerequisite)
         {
         }
 

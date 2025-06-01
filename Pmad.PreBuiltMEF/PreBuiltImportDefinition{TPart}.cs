@@ -11,8 +11,8 @@ namespace Pmad.PreBuiltMEF
         {
         }
 
-        public PreBuiltImportDefinition(Expression<Func<ExportDefinition, bool>> constaint, string contractName, ImportCardinality cardinality)
-            : base(constaint, contractName, cardinality, false, true)
+        public PreBuiltImportDefinition(Expression<Func<ExportDefinition, bool>> constaint, string contractName, ImportCardinality cardinality, bool isPrerequisite)
+            : base(constaint, contractName, cardinality, false, isPrerequisite)
         {
         }
 

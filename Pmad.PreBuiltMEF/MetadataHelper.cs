@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace Pmad.PreBuiltMEF
 {
-    internal static class MetadataHelper
+    public static class MetadataHelper
     {
         private const string ExportTypeIdentity = "ExportTypeIdentity";
 
@@ -20,6 +20,12 @@ namespace Pmad.PreBuiltMEF
             return Holder<TExport>.Value;
         }
 
+        internal static IDictionary<string, object?> GetDefaultMetadata<TExport>(Dictionary<string, object?> metadata)
+        {
+            metadata.Add(ExportTypeIdentity, Holder<TExport>.FullName);
+            return metadata;
+        }
+
         internal static Expression<Func<ExportDefinition, bool>> GetDefaultConstraint<TExport>(string contractName)
         {
             return new ContractBasedImportDefinition(contractName, Holder<TExport>.FullName, null, ImportCardinality.ExactlyOne, false, false, System.ComponentModel.Composition.CreationPolicy.Any).Constraint;
@@ -30,21 +36,26 @@ namespace Pmad.PreBuiltMEF
             return Holder<TExport>.FullName;
         }
 
-        internal static T? GetValue<T>(this IDictionary<string, object?> metadata, string key) where T : class
+        public static T GetMetadataValue<T>(this IDictionary<string, object?> metadata, string key)
         {
             if (metadata.TryGetValue(key, out object? value) && value is T finalvalue)
             {
                 return finalvalue;
             }
-            return default;
+            return default!;
+        }
+
+        public static bool HasMetadata<T>(this IDictionary<string, object?> metadata, string key)
+        {
+            return metadata.TryGetValue(key, out object? value) && value is T;
         }
 
         internal static string? GetExportTypeIdentity(this IDictionary<string, object?> metadata)
         {
-            return GetValue<string>(metadata, ExportTypeIdentity);
+            return GetMetadataValue<string>(metadata, ExportTypeIdentity);
         }
 
-        public static readonly Expression<Func<ExportDefinition, bool>> NoConstraint = e => true;
+        internal static readonly Expression<Func<ExportDefinition, bool>> NoConstraint = e => true;
 
     }
 }

@@ -7,7 +7,7 @@ namespace Pmad.PreBuiltMEF
     internal sealed class PreBuiltComposablePart<TPart> : ComposablePart where TPart : class
     {
         private readonly PreBuiltPartDefinition<TPart> definition;
-        private object[]? ctorArray;
+        private object?[]? ctorArray;
         private Action<TPart>? importActions;
         private TPart? instance;
 
@@ -44,10 +44,15 @@ namespace Pmad.PreBuiltMEF
 
         internal void AddImportAction(Action<TPart> importAction)
         {
+            if (instance != null)
+            {
+                importAction(instance);
+                return;
+            }
             importActions += importAction;
         }
 
-        internal void SetCtorImport(int index, object export)
+        internal void SetCtorImport(int index, object? export)
         {
             ctorArray![index] = export;
         }

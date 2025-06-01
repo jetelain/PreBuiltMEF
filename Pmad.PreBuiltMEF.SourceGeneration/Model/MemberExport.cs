@@ -1,9 +1,11 @@
-﻿namespace Pmad.PreBuiltMEF.SourceGeneration.Model
+﻿using System.Collections.Generic;
+
+namespace Pmad.PreBuiltMEF.SourceGeneration.Model
 {
-    internal class MemberExport : ImportOrExportBase
+    internal class MemberExport : ExportBase
     {
-        public MemberExport(string name, ContractReference reference)
-            : base(reference)
+        public MemberExport(string name, ContractReference reference, Dictionary<string,string> metadata)
+            : base(reference, metadata)
         {
             Name = name;
         }

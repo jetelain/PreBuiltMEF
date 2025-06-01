@@ -8,12 +8,16 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
         {
             ContractName = contractName;
             Type = type;
+
+            if (ContractName == Type)
+            {
+                ContractName = null;
+            }
         }
 
         public string? ContractName { get; }
 
         public string Type { get; }
-
 
         internal static ContractReference Get(ITypeSymbol type, AttributeData? importOrExportAttribute)
         {

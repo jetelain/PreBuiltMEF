@@ -35,65 +35,103 @@ namespace Pmad.PreBuiltMEF
             return this;
         }
 
+        public PreBuiltPartBuilder<TPart> AddExport<TExport>(Func<TPart, TExport> value, Dictionary<string,object?> metadata)
+        {
+            exportDefinitions.Add(new PreBuiltExportDefinition<TPart, TExport>(MetadataHelper.GetFullName<TExport>(), value, metadata));
+            return this;
+        }
+
+        public PreBuiltPartBuilder<TPart> AddExport<TExport>(string name, Func<TPart, TExport> value, Dictionary<string, object?> metadata)
+        {
+            exportDefinitions.Add(new PreBuiltExportDefinition<TPart, TExport>(name, value, metadata));
+            return this;
+        }
+
         public PreBuiltPartBuilder<TPart> AddMetadata(string name, string value)
         {
             metadata.Add(name, value);
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddImport<TImport>(Action<TPart, TImport> value)
+        // *************************** Member Imports ***************************
+
+        public PreBuiltPartBuilder<TPart> AddImport<TImport>(Action<TPart, TImport> value, bool allowDefault = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), ImportCardinality.ExactlyOne, value));
+            importDefinitions.Add(new PreBuiltImportMemberDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value));
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddImport<TImport>(string name, Action<TPart, TImport> value)
+        public PreBuiltPartBuilder<TPart> AddImport<TImport>(string name, Action<TPart, TImport> value, bool allowDefault = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberDefinition<TPart, TImport>(name, ImportCardinality.ExactlyOne, value));
+            importDefinitions.Add(new PreBuiltImportMemberDefinition<TPart, TImport>(name, allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value));
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddOptionalImport<TImport>(Action<TPart, TImport> value)
+        public PreBuiltPartBuilder<TPart> AddImport<TImport>(Action<TPart, Lazy<TImport>> value, bool allowDefault = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), ImportCardinality.ZeroOrOne, value));
+            importDefinitions.Add(new PreBuiltImportMemberLazyDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value));
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddOptionalImport<TImport>(string name, Action<TPart, TImport> value)
+        public PreBuiltPartBuilder<TPart> AddImport<TImport>(string name, Action<TPart, Lazy<TImport>> value, bool allowDefault = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberDefinition<TPart, TImport>(name, ImportCardinality.ZeroOrOne, value));
+            importDefinitions.Add(new PreBuiltImportMemberLazyDefinition<TPart, TImport>(name, allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value));
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddImportFromConstructor<TImport>()
+        public PreBuiltPartBuilder<TPart> AddImport<TImport,TMetadata>(Action<TPart, Lazy<TImport, TMetadata>> value, Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata, bool allowDefault = false)
         {
-            importDefinitions.Add(new PreBuiltImportConstructorDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), ImportCardinality.ExactlyOne, ctorImports));
+            importDefinitions.Add(new PreBuiltImportMemberLazyMetadataDefinition<TPart, TImport, TMetadata>(MetadataHelper.GetFullName<TImport>(), allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value, metadataFactory, isValidMetadata));
+            return this;
+        }
+
+        public PreBuiltPartBuilder<TPart> AddImport<TImport, TMetadata>(string name, Action<TPart, Lazy<TImport, TMetadata>> value, Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata, bool allowDefault = false)
+        {
+            importDefinitions.Add(new PreBuiltImportMemberLazyMetadataDefinition<TPart, TImport, TMetadata>(name, allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value, metadataFactory, isValidMetadata));
+            return this;
+        }
+
+        // *************************** Constructor imports ***************************
+
+        public PreBuiltPartBuilder<TPart> AddConstructorImport<TImport>(bool allowDefault = false)
+        {
+            importDefinitions.Add(new PreBuiltImportConstructorDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, ctorImports));
             ctorImports++;
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddImportFromConstructor<TImport>(string name)
+        public PreBuiltPartBuilder<TPart> AddConstructorImport<TImport>(string name, bool allowDefault = false)
         {
-            importDefinitions.Add(new PreBuiltImportConstructorDefinition<TPart, TImport>(name, ImportCardinality.ExactlyOne, ctorImports));
+            importDefinitions.Add(new PreBuiltImportConstructorDefinition<TPart, TImport>(name, allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, ctorImports));
+            ctorImports++;
+            return this;
+        }
+        public PreBuiltPartBuilder<TPart> AddConstructorImportLazy<TImport>(bool allowDefault = false)
+        {
+            importDefinitions.Add(new PreBuiltImportConstructorLazyDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, ctorImports));
             ctorImports++;
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddOptionalImportFromConstructor<TImport>()
+        public PreBuiltPartBuilder<TPart> AddConstructorImportLazy<TImport>(string name, bool allowDefault = false)
         {
-            importDefinitions.Add(new PreBuiltImportConstructorDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), ImportCardinality.ZeroOrOne, ctorImports));
+            importDefinitions.Add(new PreBuiltImportConstructorLazyDefinition<TPart, TImport>(name, allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, ctorImports));
             ctorImports++;
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddOptionalImportFromConstructor<TImport>(string name)
+        public PreBuiltPartBuilder<TPart> AddConstructorImportLazy<TImport,TMetadata>(Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata, bool allowDefault = false)
         {
-            importDefinitions.Add(new PreBuiltImportConstructorDefinition<TPart, TImport>(name, ImportCardinality.ZeroOrOne, ctorImports));
+            importDefinitions.Add(new PreBuiltImportConstructorLazyMetadataDefinition<TPart, TImport, TMetadata>(MetadataHelper.GetFullName<TImport>(), allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, ctorImports, metadataFactory, isValidMetadata));
             ctorImports++;
             return this;
         }
 
-        
-
+        public PreBuiltPartBuilder<TPart> AddConstructorImportLazy<TImport, TMetadata>(string name, Func<IDictionary<string,object?>,TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata, bool allowDefault = false)
+        {
+            importDefinitions.Add(new PreBuiltImportConstructorLazyMetadataDefinition<TPart, TImport, TMetadata>(name, allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, ctorImports, metadataFactory, isValidMetadata));
+            ctorImports++;
+            return this;
+        }
     }
 }

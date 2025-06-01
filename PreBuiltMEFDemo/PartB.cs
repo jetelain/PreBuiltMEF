@@ -18,6 +18,12 @@ namespace PreBuiltMEFDemo
         [Import]
         public IExportA1? A1 { get; set; }
 
+        [Import]
+        public Lazy<IExportA1>? A1Lazy { get; set; }
+
+        [Import]
+        public Lazy<IExportA,IMetadata1>? ALazy { get; set; }
+
         [Import("Missing", AllowDefault = true)]
         public IExportA? Missing { get; set; }
     }

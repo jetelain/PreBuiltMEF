@@ -16,8 +16,7 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection.SourceGeneration
                     transform: (ctx, _) =>
                     {
                         var classDecl = (Microsoft.CodeAnalysis.CSharp.Syntax.ClassDeclarationSyntax)ctx.Node;
-                        var symbol = ctx.SemanticModel.GetDeclaredSymbol(classDecl) as INamedTypeSymbol;
-                        if (symbol == null)
+                        if (!(ctx.SemanticModel.GetDeclaredSymbol(classDecl) is INamedTypeSymbol symbol))
                             return null;
                         return PartModel.Create(symbol);
                     })
@@ -42,16 +41,21 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection.SourceGeneration
                 sb.AppendLine("{");
                 sb.AppendLine("public static class _PreBuiltMsDI");
                 sb.AppendLine("{");
-                sb.AppendLine("public static void RegisterAllParts(Microsoft.Extensions.DependencyInjection.IServiceCollection services)");
-                sb.AppendLine("{");
+                sb.AppendLine("  public static void RegisterAllParts(Microsoft.Extensions.DependencyInjection.IServiceCollection services)");
+                sb.AppendLine("  {");
+
+                var mapper = new MetadataMapperBuilder();
 
                 foreach (var part in parts)
                 {
-                    WritePart(sb, part!);
+                    WritePart(sb, part!, mapper);
                     sb.AppendLine();
                 }
 
-                sb.AppendLine("}");
+
+                sb.AppendLine("  }");
+
+                mapper.AppendTo(sb);
                 sb.AppendLine("}");
                 sb.AppendLine("}");
 
@@ -59,11 +63,11 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection.SourceGeneration
             });
         }
 
-        private static void WritePart(System.Text.StringBuilder sb, PartModel part)
+        private static void WritePart(System.Text.StringBuilder sb, PartModel part, MetadataMapperBuilder mapper)
         {
-            sb.AppendLine($"services.AddPart<{part.Type}>(sp =>");
-            sb.AppendLine("{");
-            sb.Append($"  var part = new {part.Type}(");
+            sb.AppendLine($"    services.AddPart<{part.Type}>(sp =>");
+            sb.AppendLine("    {");
+            sb.Append($"      var part = new {part.Type}(");
             if (part.ImportingConstructorParameters != null)
             {
                 bool isFirst = true;
@@ -77,65 +81,80 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection.SourceGeneration
                     {
                         isFirst = false;
                     }
-                    var method = "Import";
-                    if (param.AllowDefault)
-                    {
-                        method = "OptionalImport";
-                    }
-                    if (string.IsNullOrEmpty(param.ContractName))
-                    {
-                        sb.Append($"sp.{method}<{param.Type}>()");
-                    }
-                    else
-                    {
-                        sb.Append($"sp.{method}<{param.Type}>(\"{param.ContractName}\")");
-                    }
+                    sb.Append($"({param.ParamType})");
+                    AppendImportCall(sb, mapper, param);
                 }
             }
 
-            sb.AppendLine($");");
+            sb.AppendLine(");");
             foreach (var memberImport in part.MemberImports)
             {
-                var method = "Import";
-                if (memberImport.AllowDefault)
-                {
-                    method = "OptionalImport";
-                }
-                if (!string.IsNullOrEmpty(memberImport.ContractName))
-                {
-                    sb.AppendLine($"  part.{memberImport.Name} = sp.{method}<{memberImport.Type}>(\"{memberImport.ContractName}\");");
-                }
-                else
-                {
-                    sb.AppendLine($"  part.{memberImport.Name} = sp.{method}<{memberImport.Type}>();");
-                }
+                sb.Append($"      part.{memberImport.Name} = ");
+                AppendImportCall(sb, mapper, memberImport);
+                sb.AppendLine(";");
             }
-            sb.AppendLine($"  return part;");
-            sb.AppendLine($"}});");
+            sb.AppendLine("      return part;");
+            sb.AppendLine("    });");
 
             foreach (var partExport in part.PartExports)
             {
+                sb.Append($"    services.RegisterExport<{part.Type},{partExport.Type}>(");
                 if (!string.IsNullOrEmpty(partExport.ContractName))
                 {
-                    sb.AppendLine($"services.RegisterExport<{part.Type},{partExport.Type}>(\"{partExport.ContractName}\", part => part);");
+                    sb.Append($"\"{partExport.ContractName}\", ");
                 }
-                else
+                sb.Append("part => part");
+                if (partExport.Metadata != null && partExport.Metadata.Count > 0)
                 {
-                    sb.AppendLine($"services.RegisterExport<{part.Type},{partExport.Type}>(part => part);");
+                    sb.Append(", ");
+                    MetadataHelper.AppendMetadata(sb, partExport.Metadata);
                 }
+                sb.AppendLine(");");
             }
 
             foreach (var memberExport in part.MemberExports)
             {
+                sb.Append($"    services.RegisterExport<{part.Type},{memberExport.Type}>(");
                 if (!string.IsNullOrEmpty(memberExport.ContractName))
                 {
-                    sb.AppendLine($"services.RegisterExport<{part.Type},{memberExport.Type}>(\"{memberExport.ContractName}\", part => part.{memberExport.Name});");
+                    sb.Append($"\"{memberExport.ContractName}\", ");
                 }
-                else
+                sb.Append($"part => part.{memberExport.Name}");
+                if (memberExport.Metadata != null && memberExport.Metadata.Count > 0)
                 {
-                    sb.AppendLine($"services.RegisterExport<{part.Type},{memberExport.Type}>(part => part.{memberExport.Name});");
+                    sb.Append(", ");
+                    MetadataHelper.AppendMetadata(sb, memberExport.Metadata);
                 }
+                sb.AppendLine(");");
             }
+        }
+
+        private static void AppendImportCall(System.Text.StringBuilder sb, MetadataMapperBuilder mapper, ImportBase import)
+        {
+            var method = "Import";
+            if (import.AllowDefault)
+            {
+                method = "OptionalImport";
+            }
+            if (import.Mode == ImportMode.Lazy)
+            {
+                method += "Lazy";
+            }
+            sb.Append($"sp.{method}<{import.GetGenericArgs()}>(");
+            if (!string.IsNullOrEmpty(import.ContractName))
+            {
+                sb.Append($"\"{import.ContractName}\"");
+            }
+            if (import.Metadata != null)
+            {
+                if (!string.IsNullOrEmpty(import.ContractName))
+                {
+                    sb.Append(", ");
+                }
+                var impl = mapper.GetOrCreate(import.Metadata);
+                sb.Append($"{impl}.Create, {impl}.IsValid");
+            }
+            sb.Append(")");
         }
     }
 }

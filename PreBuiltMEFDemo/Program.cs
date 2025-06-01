@@ -21,8 +21,8 @@ namespace PreBuiltMEFDemo
             //var container2 = new CompositionContainer(catalog2);
             //var b2 = container2.GetExportedValue<IExportB>();
 
-            BenchmarkRunner.Run<CatalogBenchmark>(null, args);
-            //BenchmarkRunner.Run< ComposeBenchmark>(null, args);
+            //BenchmarkRunner.Run<CatalogBenchmark>(null, args);
+            BenchmarkRunner.Run<ComposeBenchmark>(null, args);
             //BenchmarkRunner.Run<FullcaseBenchmark>(null, args);
 
             //for (int i = 0; i < 10000000; ++i)
@@ -49,8 +49,8 @@ namespace PreBuiltMEFDemo
             //    .AddExport<IExportA1>("NamedA1", part => part.Propperty2);
 
             //builder.AddPart<PartB>(scope => new PartB(scope.Import<IExportA>(), scope.Import<IExportA1>("NamedA1")))
-            //    .AddImportFromConstructor<IExportA>()
-            //    .AddImportFromConstructor<IExportA1>("NamedA1")
+            //    .AddConstructorImport<IExportA>()
+            //    .AddConstructorImport<IExportA1>("NamedA1")
             //    .AddMetadata("Metadata1", "MetadataB")
             //    .AddExport<IExportB>(part => part)
             //    .AddImport<IExportA>("NamedA", (part, value) => part.A = value)

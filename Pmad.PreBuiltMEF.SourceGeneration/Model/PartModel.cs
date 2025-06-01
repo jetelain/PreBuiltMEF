@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -32,7 +31,6 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
         public List<MemberImport> MemberImports { get; }
 
         public List<MemberExport> MemberExports { get; }
-
 
         public static bool IsTargeted(SyntaxNode node)
         {
@@ -72,15 +70,40 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
                 foreach (var exportAttr in prop.GetAttributes().Where(attr =>
                     attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ExportAttribute"))
                 {
-                    propexports.Add(new MemberExport(prop.Name, ContractReference.Get(prop.Type, exportAttr)));
+                    propexports.Add(new MemberExport(prop.Name, ContractReference.Get(prop.Type, exportAttr), GetExportMetadata(prop)));
                 }
 
                 foreach (var exportAttr in prop.GetAttributes().Where(attr =>
                     attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ImportAttribute"))
                 {
-                    propimports.Add(new MemberImport(prop.Name, ContractReference.Get(prop.Type, exportAttr), IsAllowDefault(exportAttr)));
+                    var lazy = IsSystemLazy(prop.Type, out var type, out var metadata);
+                    propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, exportAttr), IsAllowDefault(exportAttr), lazy, metadata));
                 }
             }
+        }
+
+        public static ImportMode IsSystemLazy(ITypeSymbol propertyType, out ITypeSymbol type, out ITypeSymbol? metadata)
+        {
+            if (propertyType is INamedTypeSymbol namedType)
+            {
+                if (namedType.ConstructedFrom?.ToDisplayString() == "System.Lazy<T>" 
+                    && namedType.TypeArguments.Length == 1)
+                {
+                    type = namedType.TypeArguments[0];
+                     metadata = null;
+                    return ImportMode.Lazy;
+                }
+                if (namedType.ConstructedFrom?.ToDisplayString() == "System.Lazy<T, TMetadata>"
+                    && namedType.TypeArguments.Length == 2)
+                {
+                    type = namedType.TypeArguments[0];
+                    metadata = namedType.TypeArguments[1];
+                    return ImportMode.Lazy;
+                }
+            }
+            metadata = null;
+            type = propertyType;
+            return ImportMode.Normal;
         }
 
         private static bool IsAllowDefault(AttributeData? exportAttr)
@@ -106,13 +129,14 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
                 foreach (var exportAttr in prop.GetAttributes().Where(attr =>
                     attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ExportAttribute"))
                 {
-                    propexports.Add(new MemberExport(prop.Name, ContractReference.Get(prop.Type, exportAttr)));
+                    propexports.Add(new MemberExport(prop.Name, ContractReference.Get(prop.Type, exportAttr), GetExportMetadata(prop)));
                 }
 
                 foreach (var exportAttr in prop.GetAttributes().Where(attr =>
                     attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ImportAttribute"))
                 {
-                    propimports.Add(new MemberImport(prop.Name, ContractReference.Get(prop.Type, exportAttr), IsAllowDefault(exportAttr)));
+                    var lazy = IsSystemLazy(prop.Type, out var type, out var metadata);
+                    propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, exportAttr), IsAllowDefault(exportAttr), lazy, metadata));
                 }
             }
         }
@@ -131,16 +155,45 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
 
             return metadata;
         }
+        private static Dictionary<string, string> GetExportMetadata(ISymbol symbol)
+        {
+            Dictionary<string, string> metadata = new Dictionary<string, string>();
+            foreach (var partMetadataAttribute in symbol.GetAttributes().Where(attr =>
+                                    attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ExportMetadataAttribute"))
+            {
+                if (partMetadataAttribute.ConstructorArguments.Length == 2)
+                {
+                    metadata.Add(partMetadataAttribute.ConstructorArguments[0].ToCSharpString(), partMetadataAttribute.ConstructorArguments[1].ToCSharpString());
+                }
+            }
+
+            //foreach (var exportMetadataAttribute in symbol.GetAttributes().Where(attr =>
+            //                        attr.AttributeClass?.GetAttributes()
+            //                        .Any(c => c.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.MetadataAttributeAttribute") ?? false))
+            //{
+            //    // ISSUE: some attributs may have custom logic to extract metadata
+
+            //    // Simple case: Properties set in the attribute (assume property has no logic)
+            //    foreach (var namedArg in exportMetadataAttribute.NamedArguments
+            //        .Where(namedArg => namedArg.Value.Value != null && namedArg.Value.Value is string))
+            //    {
+            //        metadata[namedArg.Key] = namedArg.Value.ToCSharpString();
+            //    }
+            //}
+
+            return metadata;
+        }
 
         private static List<PartExport> GetPartExports(INamedTypeSymbol symbol)
         {
+            var metadata = GetExportMetadata(symbol);
+
             List<PartExport> exports = new List<PartExport>();
             foreach (var exportAttr in symbol.GetAttributes().Where(attr =>
                 attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ExportAttribute"))
             {
-                exports.Add(new PartExport(ContractReference.Get(symbol, exportAttr)));
+                exports.Add(new PartExport(ContractReference.Get(symbol, exportAttr), metadata));
             }
-
             return exports;
         }
 
@@ -157,7 +210,9 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
                 {
                     var importAttribute = param.GetAttributes().FirstOrDefault(attr =>
                         attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ImportAttribute");
-                    importingConstructorArguments.Add(new PartConstructorParameter(param.Type.ToDisplayString(), ContractReference.Get(param.Type, importAttribute), IsAllowDefault(importAttribute)));
+
+                    var lazy = IsSystemLazy(param.Type, out var type, out var metadata);
+                    importingConstructorArguments.Add(new PartConstructorParameter(param.Type.ToDisplayString(), ContractReference.Get(type, importAttribute), IsAllowDefault(importAttribute), lazy, metadata));
                 }
                 return importingConstructorArguments;
             }

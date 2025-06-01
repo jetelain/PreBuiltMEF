@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Pmad.PreBuiltMEF
 {
@@ -8,6 +9,12 @@ namespace Pmad.PreBuiltMEF
 
         public PreBuiltExportDefinition(string name, Func<TPart, TExport> value)
             : base(name, MetadataHelper.GetDefaultMetadata<TExport>())
+        {
+            this.value = value;
+        }
+
+        public PreBuiltExportDefinition(string name, Func<TPart, TExport> value, Dictionary<string, object?> metadata)
+            : base(name, MetadataHelper.GetDefaultMetadata<TExport>(metadata))
         {
             this.value = value;
         }

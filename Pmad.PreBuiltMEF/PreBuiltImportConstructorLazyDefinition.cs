@@ -1,14 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 
 namespace Pmad.PreBuiltMEF
 {
-    internal sealed class PreBuiltImportConstructorDefinition<TPart, TImport> : PreBuiltImportDefinition<TPart, TImport> where TPart : class
+    internal sealed class PreBuiltImportConstructorLazyDefinition<TPart, TImport> : PreBuiltImportDefinition<TPart, TImport> where TPart : class
     {
         private readonly int index;
 
-        public PreBuiltImportConstructorDefinition(string name, ImportCardinality cardinality, int index)
+        public PreBuiltImportConstructorLazyDefinition(string name, ImportCardinality cardinality, int index)
           : base(name, cardinality, true)
         {
             this.index = index;
@@ -19,7 +20,7 @@ namespace Pmad.PreBuiltMEF
             var export = exports.FirstOrDefault();
             if (export != null)
             {
-                preCompiledComposablePart.SetCtorImport(index, (TImport)export.Value!);
+                preCompiledComposablePart.SetCtorImport(index, new Lazy<TImport>(() => (TImport)export.Value!));
             }
             else
             {

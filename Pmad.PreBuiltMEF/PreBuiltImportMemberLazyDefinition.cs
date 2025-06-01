@@ -5,12 +5,12 @@ using System.Linq;
 
 namespace Pmad.PreBuiltMEF
 {
-    internal sealed class PreBuiltImportMemberDefinition<TPart, TImport> : PreBuiltImportDefinition<TPart,TImport>
+    internal sealed class PreBuiltImportMemberLazyDefinition<TPart, TImport> : PreBuiltImportDefinition<TPart,TImport>
         where TPart : class
     {
-        private readonly Action<TPart, TImport> setValue;
+        private readonly Action<TPart, Lazy<TImport>> setValue;
 
-        public PreBuiltImportMemberDefinition(string name, ImportCardinality cardinality, Action<TPart, TImport> value)
+        public PreBuiltImportMemberLazyDefinition(string name, ImportCardinality cardinality, Action<TPart, Lazy<TImport>> value)
             : base(name, cardinality, false)
         {
             this.setValue = value;
@@ -21,8 +21,7 @@ namespace Pmad.PreBuiltMEF
             var export = exports.FirstOrDefault();
             if (export != null)
             {
-                var value = (TImport)export.Value!;
-                preCompiledComposablePart.AddImportAction(part => setValue(part, value));
+                preCompiledComposablePart.AddImportAction(part => setValue(part, new Lazy<TImport>(() => (TImport)export.Value!)));
             }
         }
     }
