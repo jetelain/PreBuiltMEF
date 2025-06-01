@@ -10,8 +10,8 @@ namespace Pmad.PreBuiltMEF
     {
         private readonly Action<TPart, TImport> setValue;
 
-        public PreBuiltImportMemberDefinition(string name, ImportCardinality cardinality, Action<TPart, TImport> value)
-            : base(name, cardinality, false)
+        public PreBuiltImportMemberDefinition(string name, ImportCardinality cardinality, Action<TPart, TImport> value, bool isRecomposable = false)
+            : base(name, cardinality, isPrerequisite: false, isRecomposable: isRecomposable)
         {
             this.setValue = value;
         }

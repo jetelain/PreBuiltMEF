@@ -8,8 +8,8 @@ namespace Pmad.PreBuiltMEF
     {
         protected Expression<Func<ExportDefinition, bool>>? _constraint;
 
-        protected PreBuiltImportDefinition(string contractName, ImportCardinality cardinality = ImportCardinality.ExactlyOne, bool isPrerequisite = true) 
-            : base(MetadataHelper.NoConstraint, contractName, cardinality, isPrerequisite)
+        protected PreBuiltImportDefinition(string contractName, ImportCardinality cardinality = ImportCardinality.ExactlyOne, bool isPrerequisite = true, bool isRecomposable = false) 
+            : base(MetadataHelper.NoConstraint, contractName, cardinality, isPrerequisite: isPrerequisite, isRecomposable: isRecomposable)
         {
         }
 

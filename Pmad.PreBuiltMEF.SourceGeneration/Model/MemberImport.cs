@@ -4,8 +4,8 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
 {
     internal class MemberImport : ImportBase
     {
-        public MemberImport(string name, ContractReference reference, bool allowDefault, ImportMode mode, ITypeSymbol? metadata)
-            : base(reference, allowDefault, mode, metadata)
+        public MemberImport(string name, ContractReference reference, bool allowDefault, bool allowRecomposition, ImportMode mode, ITypeSymbol? metadata)
+            : base(reference, allowDefault: allowDefault, allowRecomposition: allowRecomposition, mode, metadata)
         {
             Name = name;
         }

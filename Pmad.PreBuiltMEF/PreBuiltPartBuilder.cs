@@ -55,78 +55,78 @@ namespace Pmad.PreBuiltMEF
 
         // *************************** Member Imports ***************************
 
-        public PreBuiltPartBuilder<TPart> AddImport<TImport>(Action<TPart, TImport> value, bool allowDefault = false)
+        public PreBuiltPartBuilder<TPart> AddImport<TImport>(Action<TPart, TImport> value, bool allowDefault = false, bool allowRecomposition = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value));
+            importDefinitions.Add(new PreBuiltImportMemberDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value, isRecomposable: allowRecomposition));
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddImport<TImport>(string name, Action<TPart, TImport> value, bool allowDefault = false)
+        public PreBuiltPartBuilder<TPart> AddImport<TImport>(string name, Action<TPart, TImport> value, bool allowDefault = false, bool allowRecomposition = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberDefinition<TPart, TImport>(name, allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value));
+            importDefinitions.Add(new PreBuiltImportMemberDefinition<TPart, TImport>(name, allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value, isRecomposable: allowRecomposition));
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddImport<TImport>(Action<TPart, Lazy<TImport>> value, bool allowDefault = false)
+        public PreBuiltPartBuilder<TPart> AddImport<TImport>(Action<TPart, Lazy<TImport>> value, bool allowDefault = false, bool allowRecomposition = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberLazyDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value));
+            importDefinitions.Add(new PreBuiltImportMemberLazyDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value, isRecomposable: allowRecomposition));
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddImport<TImport>(string name, Action<TPart, Lazy<TImport>> value, bool allowDefault = false)
+        public PreBuiltPartBuilder<TPart> AddImport<TImport>(string name, Action<TPart, Lazy<TImport>> value, bool allowDefault = false, bool allowRecomposition = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberLazyDefinition<TPart, TImport>(name, allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value));
+            importDefinitions.Add(new PreBuiltImportMemberLazyDefinition<TPart, TImport>(name, allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value, isRecomposable: allowRecomposition));
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddImport<TImport,TMetadata>(Action<TPart, Lazy<TImport, TMetadata>> value, Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata, bool allowDefault = false)
+        public PreBuiltPartBuilder<TPart> AddImport<TImport,TMetadata>(Action<TPart, Lazy<TImport, TMetadata>> value, Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata, bool allowDefault = false, bool allowRecomposition = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberLazyMetadataDefinition<TPart, TImport, TMetadata>(MetadataHelper.GetFullName<TImport>(), allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value, metadataFactory, isValidMetadata));
+            importDefinitions.Add(new PreBuiltImportMemberLazyMetadataDefinition<TPart, TImport, TMetadata>(MetadataHelper.GetFullName<TImport>(), allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value, metadataFactory, isValidMetadata, isRecomposable: allowRecomposition));
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddImport<TImport, TMetadata>(string name, Action<TPart, Lazy<TImport, TMetadata>> value, Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata, bool allowDefault = false)
+        public PreBuiltPartBuilder<TPart> AddImport<TImport, TMetadata>(string name, Action<TPart, Lazy<TImport, TMetadata>> value, Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata, bool allowDefault = false, bool allowRecomposition = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberLazyMetadataDefinition<TPart, TImport, TMetadata>(name, allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value, metadataFactory, isValidMetadata));
+            importDefinitions.Add(new PreBuiltImportMemberLazyMetadataDefinition<TPart, TImport, TMetadata>(name, allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, value, metadataFactory, isValidMetadata, isRecomposable: allowRecomposition));
             return this;
         }
 
 
         // *************************** Member Imports Many ***************************
 
-        public PreBuiltPartBuilder<TPart> AddImportMany<TImport>(Action<TPart, TImport[]> value)
+        public PreBuiltPartBuilder<TPart> AddImportMany<TImport>(Action<TPart, TImport[]> value, bool allowRecomposition = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberManyDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), value));
+            importDefinitions.Add(new PreBuiltImportMemberManyDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), value, isRecomposable: allowRecomposition));
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddImportMany<TImport>(string name, Action<TPart, TImport[]> value)
+        public PreBuiltPartBuilder<TPart> AddImportMany<TImport>(string name, Action<TPart, TImport[]> value, bool allowRecomposition = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberManyDefinition<TPart, TImport>(name, value));
+            importDefinitions.Add(new PreBuiltImportMemberManyDefinition<TPart, TImport>(name, value, isRecomposable: allowRecomposition));
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddImportMany<TImport>(Action<TPart, Lazy<TImport>[]> value)
+        public PreBuiltPartBuilder<TPart> AddImportMany<TImport>(Action<TPart, Lazy<TImport>[]> value, bool allowRecomposition = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberManyLazyDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), value));
+            importDefinitions.Add(new PreBuiltImportMemberManyLazyDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), value, isRecomposable: allowRecomposition));
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddImportMany<TImport>(string name, Action<TPart, Lazy<TImport>[]> value)
+        public PreBuiltPartBuilder<TPart> AddImportMany<TImport>(string name, Action<TPart, Lazy<TImport>[]> value, bool allowRecomposition = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberManyLazyDefinition<TPart, TImport>(name, value));
+            importDefinitions.Add(new PreBuiltImportMemberManyLazyDefinition<TPart, TImport>(name, value, isRecomposable: allowRecomposition));
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddImportMany<TImport, TMetadata>(Action<TPart, Lazy<TImport, TMetadata>[]> value, Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata)
+        public PreBuiltPartBuilder<TPart> AddImportMany<TImport, TMetadata>(Action<TPart, Lazy<TImport, TMetadata>[]> value, Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata, bool allowRecomposition = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberManyLazyMetadataDefinition<TPart, TImport, TMetadata>(MetadataHelper.GetFullName<TImport>(), value, metadataFactory, isValidMetadata));
+            importDefinitions.Add(new PreBuiltImportMemberManyLazyMetadataDefinition<TPart, TImport, TMetadata>(MetadataHelper.GetFullName<TImport>(), value, metadataFactory, isValidMetadata, isRecomposable: allowRecomposition));
             return this;
         }
 
-        public PreBuiltPartBuilder<TPart> AddImportMany<TImport, TMetadata>(string name, Action<TPart, Lazy<TImport, TMetadata>[]> value, Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata)
+        public PreBuiltPartBuilder<TPart> AddImportMany<TImport, TMetadata>(string name, Action<TPart, Lazy<TImport, TMetadata>[]> value, Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata, bool allowRecomposition = false)
         {
-            importDefinitions.Add(new PreBuiltImportMemberManyLazyMetadataDefinition<TPart, TImport, TMetadata>(name, value, metadataFactory, isValidMetadata));
+            importDefinitions.Add(new PreBuiltImportMemberManyLazyMetadataDefinition<TPart, TImport, TMetadata>(name, value, metadataFactory, isValidMetadata, isRecomposable: allowRecomposition));
             return this;
         }
 

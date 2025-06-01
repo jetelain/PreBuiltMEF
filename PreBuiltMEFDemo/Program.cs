@@ -24,8 +24,8 @@ namespace PreBuiltMEFDemo
             //var catalog3 = CreateServiceCollection();
             //var b3 = CreateContainerAndGetPartB(catalog3);
 
-            BenchmarkRunner.Run<CatalogBenchmark>(null, args);
-            //BenchmarkRunner.Run<ComposeBenchmark>(null, args);
+            //BenchmarkRunner.Run<CatalogBenchmark>(null, args);
+            BenchmarkRunner.Run<ComposeBenchmark>(null, args);
             //BenchmarkRunner.Run<FullcaseBenchmark>(null, args);
 
             //for (int i = 0; i < 10000000; ++i)

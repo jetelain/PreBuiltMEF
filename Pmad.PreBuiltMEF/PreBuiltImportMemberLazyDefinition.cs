@@ -10,8 +10,8 @@ namespace Pmad.PreBuiltMEF
     {
         private readonly Action<TPart, Lazy<TImport>> setValue;
 
-        public PreBuiltImportMemberLazyDefinition(string name, ImportCardinality cardinality, Action<TPart, Lazy<TImport>> value)
-            : base(name, cardinality, false)
+        public PreBuiltImportMemberLazyDefinition(string name, ImportCardinality cardinality, Action<TPart, Lazy<TImport>> value, bool isRecomposable = false)
+            : base(name, cardinality, isPrerequisite: false, isRecomposable: isRecomposable)
         {
             this.setValue = value;
         }

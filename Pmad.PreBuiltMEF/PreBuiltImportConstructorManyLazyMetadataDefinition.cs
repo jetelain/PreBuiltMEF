@@ -10,7 +10,7 @@ namespace Pmad.PreBuiltMEF
         private readonly int index;
 
         public PreBuiltImportConstructorManyLazyMetadataDefinition(string name, int index, Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata)
-          : base(name, ImportCardinality.ZeroOrOne, true, metadataFactory, isValidMetadata)
+          : base(name, ImportCardinality.ZeroOrOne, isPrerequisite: true, isRecomposable: false, metadataFactory, isValidMetadata)
         {
             this.index = index;
         }

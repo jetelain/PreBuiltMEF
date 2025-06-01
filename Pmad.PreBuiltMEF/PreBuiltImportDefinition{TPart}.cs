@@ -7,12 +7,8 @@ namespace Pmad.PreBuiltMEF
 {
     internal abstract class PreBuiltImportDefinition<TPart> : ImportDefinition where TPart : class
     {
-        public PreBuiltImportDefinition()
-        {
-        }
-
-        public PreBuiltImportDefinition(Expression<Func<ExportDefinition, bool>> constaint, string contractName, ImportCardinality cardinality, bool isPrerequisite)
-            : base(constaint, contractName, cardinality, false, isPrerequisite)
+        protected PreBuiltImportDefinition(Expression<Func<ExportDefinition, bool>> constaint, string contractName, ImportCardinality cardinality, bool isPrerequisite, bool isRecomposable)
+            : base(constaint, contractName, cardinality, isRecomposable: isRecomposable, isPrerequisite: isPrerequisite)
         {
         }
 

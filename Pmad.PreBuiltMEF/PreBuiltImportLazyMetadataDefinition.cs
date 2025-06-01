@@ -11,12 +11,13 @@ namespace Pmad.PreBuiltMEF
         protected readonly Func<IDictionary<string, object?>, TMetadata> metadataFactory;
         protected readonly Func<IDictionary<string, object?>, bool> isValidMetadata;
 
-        public PreBuiltImportLazyMetadataDefinition(string contractName, 
+        protected PreBuiltImportLazyMetadataDefinition(string contractName, 
             ImportCardinality cardinality, 
             bool isPrerequisite, 
+            bool isRecomposable,
             Func<IDictionary<string, object?>, TMetadata> metadataFactory,
             Func<IDictionary<string, object?>, bool> isValidMetadata)
-            : base(contractName, cardinality, isPrerequisite)
+            : base(contractName, cardinality, isPrerequisite: isPrerequisite, isRecomposable: isRecomposable)
         {
             this.metadataFactory = metadataFactory;
             this.isValidMetadata = isValidMetadata;

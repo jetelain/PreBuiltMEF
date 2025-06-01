@@ -198,12 +198,16 @@ namespace Pmad.PreBuiltMEF.SourceGeneration
                 sb.Append($"allowDefault: true");
                 needComma = true;
             }
+            if (memberImport.AllowRecomposition)
+            {
+                if (needComma)
+                {
+                    sb.Append(", ");
+                }
+                sb.Append($"allowRecomposition: true");
+                needComma = true;
+            }
             sb.Append(")");
-        }
-
-        private static string Boolean(bool allowDefault)
-        {
-            return allowDefault ? "true" : "false";
         }
     }
 }

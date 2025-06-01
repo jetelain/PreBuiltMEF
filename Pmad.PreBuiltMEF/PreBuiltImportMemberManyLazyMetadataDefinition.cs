@@ -13,8 +13,9 @@ namespace Pmad.PreBuiltMEF
         public PreBuiltImportMemberManyLazyMetadataDefinition(string name, 
             Action<TPart, Lazy<TImport,TMetadata>[]> value,
             Func<IDictionary<string, object?>, TMetadata> metadataFactory,
-            Func<IDictionary<string, object?>, bool> isValidMetadata)
-            : base(name, ImportCardinality.ZeroOrMore, false, metadataFactory, isValidMetadata)
+            Func<IDictionary<string, object?>, bool> isValidMetadata,
+            bool isRecomposable = false)
+            : base(name, ImportCardinality.ZeroOrMore, isPrerequisite: false, isRecomposable: isRecomposable, metadataFactory, isValidMetadata)
         {
             this.setValue = value;
         }

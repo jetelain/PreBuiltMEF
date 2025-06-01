@@ -10,7 +10,7 @@ namespace Pmad.PreBuiltMEF
         private readonly int index;
 
         public PreBuiltImportConstructorManyLazyDefinition(string name, int index)
-          : base(name, ImportCardinality.ZeroOrMore, true)
+          : base(name, ImportCardinality.ZeroOrMore, isPrerequisite: true)
         {
             this.index = index;
         }

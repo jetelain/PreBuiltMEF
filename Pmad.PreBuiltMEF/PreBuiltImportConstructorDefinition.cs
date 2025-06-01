@@ -9,7 +9,7 @@ namespace Pmad.PreBuiltMEF
         private readonly int index;
 
         public PreBuiltImportConstructorDefinition(string name, ImportCardinality cardinality, int index)
-          : base(name, cardinality, true)
+          : base(name, cardinality, isPrerequisite: true)
         {
             this.index = index;
         }

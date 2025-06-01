@@ -14,8 +14,9 @@ namespace Pmad.PreBuiltMEF
             ImportCardinality cardinality,
             Action<TPart, Lazy<TImport,TMetadata>> value,
             Func<IDictionary<string, object?>, TMetadata> metadataFactory,
-            Func<IDictionary<string, object?>, bool> isValidMetadata)
-            : base(name, cardinality, false, metadataFactory, isValidMetadata)
+            Func<IDictionary<string, object?>, bool> isValidMetadata,
+            bool isRecomposable = false)
+            : base(name, cardinality, isPrerequisite: false, isRecomposable: isRecomposable, metadataFactory, isValidMetadata)
         {
             this.setValue = value;
         }

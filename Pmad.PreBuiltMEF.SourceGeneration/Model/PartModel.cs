@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -75,7 +76,7 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
                     attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ImportAttribute"))
                 {
                     var mode = GetImportMode(prop.Type, out var type, out var metadata);
-                    propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, importAttr), IsAllowDefault(importAttr), mode, metadata));
+                    propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, importAttr), allowDefault: IsAllowDefault(importAttr), allowRecomposition: IsAllowRecomposition(importAttr), mode, metadata));
                 }
 
                 foreach (var importManyAttr in prop.GetAttributes().Where(attr =>
@@ -84,7 +85,7 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
                     var mode = GetImportManyMode(prop.Type, out var type, out var metadata);
                     if (mode >= ImportMode.Many)
                     {
-                        propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, importManyAttr), false, mode, metadata));
+                        propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, importManyAttr), allowDefault: false, allowRecomposition: IsAllowRecomposition(importManyAttr), mode, metadata));
                     }
                 }
             }
@@ -144,13 +145,13 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
             return ImportMode.Normal;
         }
 
-        private static bool IsAllowDefault(AttributeData? exportAttr)
+        private static bool IsAllowDefault(AttributeData? attr)
         {
-            if (exportAttr == null)
+            if (attr == null)
             {
                 return false;
             }
-            foreach (var namedArg in exportAttr.NamedArguments)
+            foreach (var namedArg in attr.NamedArguments)
             {
                 if (namedArg.Key == "AllowDefault" && namedArg.Value.Value is bool allowDefault)
                 {
@@ -174,7 +175,7 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
                     attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ImportAttribute"))
                 {
                     var mode = GetImportMode(prop.Type, out var type, out var metadata);
-                    propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, importAttr), IsAllowDefault(importAttr), mode, metadata));
+                    propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, importAttr), allowDefault: IsAllowDefault(importAttr), allowRecomposition: IsAllowRecomposition(importAttr), mode, metadata));
                 }
 
                 foreach (var importManyAttr in prop.GetAttributes().Where(attr =>
@@ -183,10 +184,26 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
                     var mode = GetImportManyMode(prop.Type, out var type, out var metadata);
                     if (mode >= ImportMode.Many)
                     {
-                        propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, importManyAttr), false, mode, metadata));
+                        propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, importManyAttr), allowDefault: false, allowRecomposition: IsAllowRecomposition(importManyAttr), mode, metadata));
                     }
                 }
             }
+        }
+
+        private static bool IsAllowRecomposition(AttributeData? attr)
+        {
+            if (attr == null)
+            {
+                return false;
+            }
+            foreach (var namedArg in attr.NamedArguments)
+            {
+                if (namedArg.Key == "AllowRecomposition" && namedArg.Value.Value is bool allowDefault)
+                {
+                    return allowDefault;
+                }
+            }
+            return false;
         }
 
         private static Dictionary<string, string> GetMetadata(INamedTypeSymbol symbol)
