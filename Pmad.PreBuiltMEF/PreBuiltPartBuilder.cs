@@ -91,6 +91,45 @@ namespace Pmad.PreBuiltMEF
             return this;
         }
 
+
+        // *************************** Member Imports Many ***************************
+
+        public PreBuiltPartBuilder<TPart> AddImportMany<TImport>(Action<TPart, TImport[]> value)
+        {
+            importDefinitions.Add(new PreBuiltImportMemberManyDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), value));
+            return this;
+        }
+
+        public PreBuiltPartBuilder<TPart> AddImportMany<TImport>(string name, Action<TPart, TImport[]> value)
+        {
+            importDefinitions.Add(new PreBuiltImportMemberManyDefinition<TPart, TImport>(name, value));
+            return this;
+        }
+
+        public PreBuiltPartBuilder<TPart> AddImportMany<TImport>(Action<TPart, Lazy<TImport>[]> value)
+        {
+            importDefinitions.Add(new PreBuiltImportMemberManyLazyDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), value));
+            return this;
+        }
+
+        public PreBuiltPartBuilder<TPart> AddImportMany<TImport>(string name, Action<TPart, Lazy<TImport>[]> value)
+        {
+            importDefinitions.Add(new PreBuiltImportMemberManyLazyDefinition<TPart, TImport>(name, value));
+            return this;
+        }
+
+        public PreBuiltPartBuilder<TPart> AddImportMany<TImport, TMetadata>(Action<TPart, Lazy<TImport, TMetadata>[]> value, Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata)
+        {
+            importDefinitions.Add(new PreBuiltImportMemberManyLazyMetadataDefinition<TPart, TImport, TMetadata>(MetadataHelper.GetFullName<TImport>(), value, metadataFactory, isValidMetadata));
+            return this;
+        }
+
+        public PreBuiltPartBuilder<TPart> AddImportMany<TImport, TMetadata>(string name, Action<TPart, Lazy<TImport, TMetadata>[]> value, Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata)
+        {
+            importDefinitions.Add(new PreBuiltImportMemberManyLazyMetadataDefinition<TPart, TImport, TMetadata>(name, value, metadataFactory, isValidMetadata));
+            return this;
+        }
+
         // *************************** Constructor imports ***************************
 
         public PreBuiltPartBuilder<TPart> AddConstructorImport<TImport>(bool allowDefault = false)
@@ -130,6 +169,50 @@ namespace Pmad.PreBuiltMEF
         public PreBuiltPartBuilder<TPart> AddConstructorImportLazy<TImport, TMetadata>(string name, Func<IDictionary<string,object?>,TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata, bool allowDefault = false)
         {
             importDefinitions.Add(new PreBuiltImportConstructorLazyMetadataDefinition<TPart, TImport, TMetadata>(name, allowDefault ? ImportCardinality.ZeroOrOne : ImportCardinality.ExactlyOne, ctorImports, metadataFactory, isValidMetadata));
+            ctorImports++;
+            return this;
+        }
+
+
+        // *************************** Constructor Many imports ***************************
+
+        public PreBuiltPartBuilder<TPart> AddConstructorImportMany<TImport>(bool allowDefault = false)
+        {
+            importDefinitions.Add(new PreBuiltImportConstructorManyDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), ctorImports));
+            ctorImports++;
+            return this;
+        }
+
+        public PreBuiltPartBuilder<TPart> AddConstructorImportMany<TImport>(string name, bool allowDefault = false)
+        {
+            importDefinitions.Add(new PreBuiltImportConstructorManyDefinition<TPart, TImport>(name, ctorImports));
+            ctorImports++;
+            return this;
+        }
+        public PreBuiltPartBuilder<TPart> AddConstructorImportManyLazy<TImport>(bool allowDefault = false)
+        {
+            importDefinitions.Add(new PreBuiltImportConstructorManyLazyDefinition<TPart, TImport>(MetadataHelper.GetFullName<TImport>(), ctorImports));
+            ctorImports++;
+            return this;
+        }
+
+        public PreBuiltPartBuilder<TPart> AddConstructorImportManyLazy<TImport>(string name, bool allowDefault = false)
+        {
+            importDefinitions.Add(new PreBuiltImportConstructorManyLazyDefinition<TPart, TImport>(name, ctorImports));
+            ctorImports++;
+            return this;
+        }
+
+        public PreBuiltPartBuilder<TPart> AddConstructorImportManyLazy<TImport, TMetadata>(Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata, bool allowDefault = false)
+        {
+            importDefinitions.Add(new PreBuiltImportConstructorManyLazyMetadataDefinition<TPart, TImport, TMetadata>(MetadataHelper.GetFullName<TImport>(), ctorImports, metadataFactory, isValidMetadata));
+            ctorImports++;
+            return this;
+        }
+
+        public PreBuiltPartBuilder<TPart> AddConstructorImportManyLazy<TImport, TMetadata>(string name, Func<IDictionary<string, object?>, TMetadata> metadataFactory, Func<IDictionary<string, object?>, bool> isValidMetadata, bool allowDefault = false)
+        {
+            importDefinitions.Add(new PreBuiltImportConstructorManyLazyMetadataDefinition<TPart, TImport, TMetadata>(name, ctorImports, metadataFactory, isValidMetadata));
             ctorImports++;
             return this;
         }

@@ -137,6 +137,10 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection.SourceGeneration
             {
                 method = "OptionalImport";
             }
+            else if (import.Mode >= ImportMode.Many)
+            {
+                method = "ImportMany";
+            }
             if (import.Mode == ImportMode.Lazy)
             {
                 method += "Lazy";

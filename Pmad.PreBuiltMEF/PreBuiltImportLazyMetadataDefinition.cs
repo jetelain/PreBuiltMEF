@@ -47,5 +47,10 @@ namespace Pmad.PreBuiltMEF
         {
             return base.IsConstraintSatisfiedBy(exportDefinition) && isValidMetadata(exportDefinition.Metadata);
         }
+
+        public override string ToString()
+        {
+            return $"Contract=='{ContractName}' and Metadata['ExportTypeIdentity']=='{MetadataHelper.GetFullName<TImport>()}' and Metadata is '{typeof(TMetadata).FullName}'";
+        }
     }
 }

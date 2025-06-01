@@ -3,6 +3,9 @@
     internal enum ImportMode
     {
         Normal,
-        Lazy
+        Lazy,
+
+        Many,
+        ManyLazy
     }
 }

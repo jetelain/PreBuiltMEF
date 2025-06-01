@@ -26,6 +26,9 @@ namespace PreBuiltMEFDemo
 
         [Import("Missing", AllowDefault = true)]
         public IExportA? Missing { get; set; }
+
+        [ImportMany]
+        public IEnumerable<IExportA1>? A1Many { get; set; }
     }
 
 }

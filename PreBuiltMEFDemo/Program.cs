@@ -21,8 +21,11 @@ namespace PreBuiltMEFDemo
             //var container2 = new CompositionContainer(catalog2);
             //var b2 = container2.GetExportedValue<IExportB>();
 
-            //BenchmarkRunner.Run<CatalogBenchmark>(null, args);
-            BenchmarkRunner.Run<ComposeBenchmark>(null, args);
+            //var catalog3 = CreateServiceCollection();
+            //var b3 = CreateContainerAndGetPartB(catalog3);
+
+            BenchmarkRunner.Run<CatalogBenchmark>(null, args);
+            //BenchmarkRunner.Run<ComposeBenchmark>(null, args);
             //BenchmarkRunner.Run<FullcaseBenchmark>(null, args);
 
             //for (int i = 0; i < 10000000; ++i)

@@ -48,9 +48,19 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection
             return serviceProvider.GetRequiredService<TExport>();
         }
 
+        public static TExport[] ImportMany<TExport>(this IServiceProvider serviceProvider)
+        {
+            return serviceProvider.GetServices<TExport>().ToArray();
+        }
+
         public static TExport Import<TExport>(this IServiceProvider serviceProvider, string name)
         {
             return serviceProvider.GetRequiredKeyedService<TExport>(name);
+        }
+
+        public static TExport[] ImportMany<TExport>(this IServiceProvider serviceProvider, string name)
+        {
+            return serviceProvider.GetKeyedServices<TExport>(name).ToArray();
         }
 
         public static TExport OptionalImport<TExport>(this IServiceProvider serviceProvider)
@@ -83,6 +93,16 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection
             return new Lazy<TExport>(() => serviceProvider.GetKeyedService<TExport>(name));
         }
 
+        public static Lazy<TExport>[] ImportManyLazy<TExport>(this IServiceProvider serviceProvider)
+        {
+            return serviceProvider.GetServices<TExport>().Select(s => new Lazy<TExport>(() => s)).ToArray(); // XXX: This is a lie, we have to instanciate the parts to list them
+        }
+
+        public static Lazy<TExport>[] ImportManyLazy<TExport>(this IServiceProvider serviceProvider, string name)
+        {
+            return serviceProvider.GetKeyedServices<TExport>(name).Select(s => new Lazy<TExport>(() => s)).ToArray(); // XXX: This is a lie, we have to instanciate the parts to list them
+        }
+
         public static Lazy<TExport,TMetadata> ImportLazy<TExport, TMetadata>(this IServiceProvider serviceProvider, Func<IDictionary<string, object>, TMetadata> metadataFactory, Func<IDictionary<string, object>, bool> isValidMetadata)
         {
             var instance = serviceProvider.GetServices<ExportWithMetadata<TExport>>().Single(e => isValidMetadata(e.Metadata));
@@ -113,6 +133,24 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection
                 return new Lazy<TExport, TMetadata>(() => instance.Factory(serviceProvider), metadataFactory(instance.Metadata));
             }
             return null;
+        }
+
+        public static Lazy<TExport, TMetadata>[] ImportManyLazy<TExport, TMetadata>(this IServiceProvider serviceProvider, Func<IDictionary<string, object>, TMetadata> metadataFactory, Func<IDictionary<string, object>, bool> isValidMetadata)
+        {
+            return serviceProvider
+                .GetServices<ExportWithMetadata<TExport>>()
+                .Where(e => isValidMetadata(e.Metadata))
+                .Select(instance => new Lazy<TExport, TMetadata>(() => instance.Factory(serviceProvider), metadataFactory(instance.Metadata)))
+                .ToArray();
+        }
+
+        public static Lazy<TExport, TMetadata>[] ImportManyLazy<TExport, TMetadata>(this IServiceProvider serviceProvider, string name, Func<IDictionary<string, object>, TMetadata> metadataFactory, Func<IDictionary<string, object>, bool> isValidMetadata)
+        {
+            return serviceProvider
+                .GetKeyedServices<ExportWithMetadata<TExport>>(name)
+                .Where(e => isValidMetadata(e.Metadata))
+                .Select(instance => new Lazy<TExport, TMetadata>(() => instance.Factory(serviceProvider), metadataFactory(instance.Metadata)))
+                .ToArray();
         }
 
     }

@@ -44,19 +44,17 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
 
         public static PartModel? Create(INamedTypeSymbol symbol)
         {
-            List<PartConstructorParameter>? importingConstructorArguments = GetImportingConstructorParameters(symbol);
+            var importingConstructorArguments = GetImportingConstructorParameters(symbol);
+            var exports = GetPartExports(symbol);
 
-            Dictionary<string, string> metadata = GetMetadata(symbol);
-
-            List<PartExport> exports = GetPartExports(symbol);
-
-            List<MemberExport> propexports = new List<MemberExport>();
-            List<MemberImport> propimports = new List<MemberImport>();
+            var propexports = new List<MemberExport>();
+            var propimports = new List<MemberImport>();
             GetProperties(symbol, propexports, propimports);
             GetFields(symbol, propexports, propimports);
 
-            if (importingConstructorArguments != null || exports.Count > 0 || propexports.Count > 0 || propimports.Count > 0 || metadata.Count > 0)
+            if (importingConstructorArguments != null || exports.Count > 0 || propexports.Count > 0 || propimports.Count > 0)
             {
+                var metadata = GetMetadata(symbol);
                 return new PartModel(symbol.ToDisplayString(), metadata, importingConstructorArguments, exports, propimports, propexports);
             }
 
@@ -73,16 +71,26 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
                     propexports.Add(new MemberExport(prop.Name, ContractReference.Get(prop.Type, exportAttr), GetExportMetadata(prop)));
                 }
 
-                foreach (var exportAttr in prop.GetAttributes().Where(attr =>
+                foreach (var importAttr in prop.GetAttributes().Where(attr =>
                     attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ImportAttribute"))
                 {
-                    var lazy = IsSystemLazy(prop.Type, out var type, out var metadata);
-                    propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, exportAttr), IsAllowDefault(exportAttr), lazy, metadata));
+                    var mode = GetImportMode(prop.Type, out var type, out var metadata);
+                    propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, importAttr), IsAllowDefault(importAttr), mode, metadata));
+                }
+
+                foreach (var importManyAttr in prop.GetAttributes().Where(attr =>
+                    attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ImportManyAttribute"))
+                {
+                    var mode = GetImportManyMode(prop.Type, out var type, out var metadata);
+                    if (mode >= ImportMode.Many)
+                    {
+                        propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, importManyAttr), false, mode, metadata));
+                    }
                 }
             }
         }
 
-        public static ImportMode IsSystemLazy(ITypeSymbol propertyType, out ITypeSymbol type, out ITypeSymbol? metadata)
+        public static ImportMode GetImportMode(ITypeSymbol propertyType, out ITypeSymbol type, out ITypeSymbol? metadata)
         {
             if (propertyType is INamedTypeSymbol namedType)
             {
@@ -99,6 +107,36 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
                     type = namedType.TypeArguments[0];
                     metadata = namedType.TypeArguments[1];
                     return ImportMode.Lazy;
+                }
+            }
+            metadata = null;
+            type = propertyType;
+            return ImportMode.Normal;
+        }
+
+        public static ImportMode GetImportManyMode(ITypeSymbol propertyType, out ITypeSymbol type, out ITypeSymbol? metadata)
+        {
+            if (propertyType is INamedTypeSymbol namedType)
+            {
+                if (namedType.TypeKind == TypeKind.Array 
+                    && namedType.TypeArguments.Length == 1)
+                {
+                    var itemMode = GetImportMode(namedType.TypeArguments[0], out type, out metadata);
+                    if (itemMode == ImportMode.Lazy)
+                    {
+                        return ImportMode.ManyLazy;
+                    }
+                    return ImportMode.Many;
+                }
+                if (namedType.ConstructedFrom?.ToDisplayString() == "System.Collections.Generic.IEnumerable<T>"
+                    && namedType.TypeArguments.Length == 1)
+                {
+                    var itemMode = GetImportMode(namedType.TypeArguments[0], out type, out metadata);
+                    if (itemMode == ImportMode.Lazy)
+                    {
+                        return ImportMode.ManyLazy;
+                    }
+                    return ImportMode.Many;
                 }
             }
             metadata = null;
@@ -132,11 +170,21 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
                     propexports.Add(new MemberExport(prop.Name, ContractReference.Get(prop.Type, exportAttr), GetExportMetadata(prop)));
                 }
 
-                foreach (var exportAttr in prop.GetAttributes().Where(attr =>
+                foreach (var importAttr in prop.GetAttributes().Where(attr =>
                     attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ImportAttribute"))
                 {
-                    var lazy = IsSystemLazy(prop.Type, out var type, out var metadata);
-                    propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, exportAttr), IsAllowDefault(exportAttr), lazy, metadata));
+                    var mode = GetImportMode(prop.Type, out var type, out var metadata);
+                    propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, importAttr), IsAllowDefault(importAttr), mode, metadata));
+                }
+
+                foreach (var importManyAttr in prop.GetAttributes().Where(attr =>
+                    attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ImportManyAttribute"))
+                {
+                    var mode = GetImportManyMode(prop.Type, out var type, out var metadata);
+                    if (mode >= ImportMode.Many)
+                    {
+                        propimports.Add(new MemberImport(prop.Name, ContractReference.Get(type, importManyAttr), false, mode, metadata));
+                    }
                 }
             }
         }
@@ -211,7 +259,20 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
                     var importAttribute = param.GetAttributes().FirstOrDefault(attr =>
                         attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ImportAttribute");
 
-                    var lazy = IsSystemLazy(param.Type, out var type, out var metadata);
+                    var importManyAttribute = param.GetAttributes().FirstOrDefault(attr =>
+                        attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ImportManyAttribute");
+
+                    if (importManyAttribute != null)
+                    {
+                        var mode = GetImportManyMode(param.Type, out var typeMany, out var metadataMany);
+                        if (mode >= ImportMode.Many)
+                        {
+                            importingConstructorArguments.Add(new PartConstructorParameter(param.Type.ToDisplayString(), ContractReference.Get(typeMany, importManyAttribute), false, mode, metadataMany));
+                        }
+                        continue;
+                    }
+
+                    var lazy = GetImportMode(param.Type, out var type, out var metadata);
                     importingConstructorArguments.Add(new PartConstructorParameter(param.Type.ToDisplayString(), ContractReference.Get(type, importAttribute), IsAllowDefault(importAttribute), lazy, metadata));
                 }
                 return importingConstructorArguments;
