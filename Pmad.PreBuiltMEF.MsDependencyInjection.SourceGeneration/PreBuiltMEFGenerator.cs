@@ -93,6 +93,7 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection.SourceGeneration
                 AppendImportCall(sb, mapper, memberImport);
                 sb.AppendLine(";");
             }
+            sb.AppendLine("      (part as System.ComponentModel.Composition.IPartImportsSatisfiedNotification)?.OnImportsSatisfied();");
             sb.AppendLine("      return part;");
             sb.AppendLine("    });");
 

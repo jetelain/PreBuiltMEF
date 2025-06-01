@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Primitives;
 
 namespace Pmad.PreBuiltMEF
@@ -40,6 +41,7 @@ namespace Pmad.PreBuiltMEF
             importActions?.Invoke(instance);
             ctorArray = null;
             importActions = null;
+            (instance as IPartImportsSatisfiedNotification)?.OnImportsSatisfied();
         }
 
         internal void AddImportAction(Action<TPart> importAction)
