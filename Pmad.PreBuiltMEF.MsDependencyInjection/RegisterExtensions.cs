@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Pmad.PreBuiltMEF.MsDependencyInjection
@@ -26,15 +27,15 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection
         public static IServiceCollection RegisterExport<TPart, TExport>(this IServiceCollection services, Func<TPart, TExport> factory, Dictionary<string, object> metadata)
             where TExport : class
         {
-            throw new NotImplementedException("RegisterExport with metadata is not implemented yet.");
-            //return services.AddSingleton<TExport>(sp => factory(sp.GetPart<TPart>()));
+            services.AddSingleton<ExportWithMetadata<TExport>>(new ExportWithMetadata<TExport>(sp => factory(sp.GetPart<TPart>()), metadata));
+            return services.AddSingleton<TExport>(sp => factory(sp.GetPart<TPart>()));
         }
 
         public static IServiceCollection RegisterExport<TPart, TExport>(this IServiceCollection services, string name, Func<TPart, TExport> factory, Dictionary<string, object> metadata)
             where TExport : class
         {
-            throw new NotImplementedException("RegisterExport with metadata is not implemented yet.");
-            //return services.AddKeyedSingleton<TExport>(name, (sp, _) => factory(sp.GetPart<TPart>()));
+            services.AddKeyedSingleton<ExportWithMetadata<TExport>>(name, new ExportWithMetadata<TExport>(sp => factory(sp.GetPart<TPart>()), metadata));
+            return services.AddKeyedSingleton<TExport>(name, (sp, _) => factory(sp.GetPart<TPart>()));
         }
 
         public static TPart GetPart<TPart>(this IServiceProvider serviceProvider)
@@ -84,26 +85,34 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection
 
         public static Lazy<TExport,TMetadata> ImportLazy<TExport, TMetadata>(this IServiceProvider serviceProvider, Func<IDictionary<string, object>, TMetadata> metadataFactory, Func<IDictionary<string, object>, bool> isValidMetadata)
         {
-            throw new NotImplementedException("ImportLazy with metadata is not implemented yet.");
-            //return new Lazy<TExport, TMetadata>(() => serviceProvider.GetRequiredService<TExport>(), default);
+            var instance = serviceProvider.GetServices<ExportWithMetadata<TExport>>().Single(e => isValidMetadata(e.Metadata));
+            return new Lazy<TExport, TMetadata>(() => instance.Factory(serviceProvider), metadataFactory(instance.Metadata));
         }
 
         public static Lazy<TExport, TMetadata> ImportLazy<TExport, TMetadata>(this IServiceProvider serviceProvider, string name, Func<IDictionary<string, object>, TMetadata> metadataFactory, Func<IDictionary<string, object>, bool> isValidMetadata)
         {
-            throw new NotImplementedException("ImportLazy with metadata is not implemented yet.");
-            //return new Lazy<TExport, TMetadata>(() => serviceProvider.GetRequiredKeyedService<TExport>(name), default);
+            var instance = serviceProvider.GetKeyedServices<ExportWithMetadata<TExport>>(name).Single(e => isValidMetadata(e.Metadata));
+            return new Lazy<TExport, TMetadata>(() => instance.Factory(serviceProvider), metadataFactory(instance.Metadata));
         }
 
         public static Lazy<TExport, TMetadata> OptionalImportLazy<TExport, TMetadata>(this IServiceProvider serviceProvider, Func<IDictionary<string, object>, TMetadata> metadataFactory, Func<IDictionary<string, object>, bool> isValidMetadata)
         {
-            throw new NotImplementedException("ImportLazy with metadata is not implemented yet.");
-            //return new Lazy<TExport, TMetadata>(() => serviceProvider.GetService<TExport>(), default);
+            var instance = serviceProvider.GetServices<ExportWithMetadata<TExport>>().SingleOrDefault(e => isValidMetadata(e.Metadata));
+            if (instance != null)
+            {
+                return new Lazy<TExport, TMetadata>(() => instance.Factory(serviceProvider), metadataFactory(instance.Metadata));
+            }
+            return null;
         }
 
         public static Lazy<TExport, TMetadata> OptionalImportLazy<TExport, TMetadata>(this IServiceProvider serviceProvider, string name, Func<IDictionary<string, object>, TMetadata> metadataFactory, Func<IDictionary<string, object>, bool> isValidMetadata)
         {
-            throw new NotImplementedException("ImportLazy with metadata is not implemented yet.");
-            //return new Lazy<TExport, TMetadata>(() => serviceProvider.GetKeyedService<TExport>(name), default);
+            var instance = serviceProvider.GetKeyedServices<ExportWithMetadata<TExport>>(name).Single(e => isValidMetadata(e.Metadata));
+            if (instance != null)
+            {
+                return new Lazy<TExport, TMetadata>(() => instance.Factory(serviceProvider), metadataFactory(instance.Metadata));
+            }
+            return null;
         }
 
     }
