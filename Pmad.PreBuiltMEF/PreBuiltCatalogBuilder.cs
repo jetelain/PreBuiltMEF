@@ -42,7 +42,7 @@ namespace Pmad.PreBuiltMEF
 
         public PreBuiltPartBuilderBase<T> AddComposable<T>() where T : class
         {
-            throw new NotImplementedException();
+            return new PreBuiltComposableBuilder<T>();
         }
 
         public ComposablePartCatalog Build()

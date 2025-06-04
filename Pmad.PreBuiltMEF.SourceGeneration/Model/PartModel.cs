@@ -54,7 +54,9 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
 
         public bool CanConstruct => (HasEmptyConstructor || HasImportingConstructor) && !IsGenericTypeDefinition && !IsAbstract;
 
-        public bool IsOnlyComposable => MemberExports.Count == 0 && PartExports.Count == 0  && MemberImports.Count > 0 && CanConstruct;
+        public bool HasExports => MemberExports.Count > 0 || PartExports.Count > 0;
+
+        public bool CanRegister => !IsAbstract && !IsGenericTypeDefinition;
 
         public static bool IsTargeted(SyntaxNode node)
         {

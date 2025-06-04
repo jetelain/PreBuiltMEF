@@ -59,7 +59,7 @@ namespace Pmad.PreBuiltMEF.SourceGeneration
 
                 foreach (var part in parts)
                 {
-                    if (part!.CanConstruct)
+                    if (part!.CanRegister)
                     {
                         WritePart(sb, part!, mapper);
                         sb.AppendLine();
@@ -203,11 +203,11 @@ namespace Pmad.PreBuiltMEF.SourceGeneration
 
         private static string GetPartMethod(PartModel part)
         {
-            if (part.IsOnlyComposable)
+            if (!part.CanConstruct)
             {
                 return "AddComposable";
             }
-            if (part.IsDiscoverable)
+            if (part.IsDiscoverable && part.HasExports)
             {
                 return "AddPart";
             }

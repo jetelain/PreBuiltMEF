@@ -3,13 +3,8 @@ using System.ComponentModel.Composition.Primitives;
 
 namespace LibraryA
 {
-    public sealed class ExtComposable
+    public sealed class ExtInstanciable
     {
-        public ExtComposable(string id)
-        {
-
-        }
-
         [Import]
         internal IExternalExportA ImportA { get; set; }
 

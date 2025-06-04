@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition.Primitives;
 using System.Diagnostics;
+using System.Linq;
 using BenchmarkDotNet.Running;
 using LibraryA;
 using Microsoft.Extensions.DependencyInjection;
@@ -83,7 +84,9 @@ namespace PreBuiltMEFDemo
 
         public static ComposablePartCatalog CreateCatalogReflection()
         {
-            return new AggregateCatalog(new AssemblyCatalog(typeof(Program).Assembly), new AssemblyCatalog(typeof(ExtComposable).Assembly));
+            // It's not fair, AggregateCatalog is really slow compared to TypeCatalog.
+            //return new AggregateCatalog(new AssemblyCatalog(typeof(Program).Assembly), new AssemblyCatalog(typeof(ExtInstanciable).Assembly));
+            return new TypeCatalog(typeof(Program).Assembly.GetTypes().Concat(typeof(ExtInstanciable).Assembly.GetTypes()));
         }
     }
 }
