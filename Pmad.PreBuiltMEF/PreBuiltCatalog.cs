@@ -8,10 +8,13 @@ namespace Pmad.PreBuiltMEF
     internal sealed class PreBuiltCatalog : ComposablePartCatalog
     {
         private readonly List<ComposablePartDefinition> parts;
-
+        private readonly Dictionary<string, List<Tuple<ComposablePartDefinition, ExportDefinition>>> index;
         public PreBuiltCatalog(List<ComposablePartDefinition> parts)
         {
             this.parts = parts;
+            this.index = parts.SelectMany(p => p.ExportDefinitions.Select(e => new Tuple<ComposablePartDefinition, ExportDefinition>(p, e)))
+                              .GroupBy(ed => ed.Item2.ContractName)
+                              .ToDictionary(g => g.Key, g => g.ToList());
         }
 
 #pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
@@ -29,8 +32,11 @@ namespace Pmad.PreBuiltMEF
 
         public override IEnumerable<Tuple<ComposablePartDefinition, ExportDefinition>> GetExports(ImportDefinition definition)
         {
-            // TODO: Create a more efficient lookup mechanism (with an index/dictionary per ContractName)
-            return base.GetExports(definition);
+            if (index.TryGetValue(definition.ContractName, out var exports))
+            {
+                return exports.Where(e => definition.IsConstraintSatisfiedBy(e.Item2));
+            }
+            return Enumerable.Empty<Tuple<ComposablePartDefinition, ExportDefinition>>();
         }
     }
 }
