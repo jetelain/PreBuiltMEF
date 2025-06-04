@@ -14,6 +14,7 @@ namespace Pmad.PreBuiltMEF.SourceGeneration
             // Étape 1 : Filtrer les classes avec ExportAttribute, ImportingConstructorAttribute,
             // ou une propriété avec ImportAttribute ou ExportAttribute
             var exportedClasses = context.SyntaxProvider
+                
                 .CreateSyntaxProvider(
                     predicate: (node, _) => PartModel.IsTargeted(node),
                     transform: (ctx, _) =>
@@ -21,10 +22,12 @@ namespace Pmad.PreBuiltMEF.SourceGeneration
                         var classDecl = (Microsoft.CodeAnalysis.CSharp.Syntax.ClassDeclarationSyntax)ctx.Node;
                         if (!(ctx.SemanticModel.GetDeclaredSymbol(classDecl) is INamedTypeSymbol symbol))
                             return null;
-                        return PartModel.Create(symbol);
+                        return PartModel.Create(symbol, "_PreBuiltMEF");
                     })
                 .Where(c => c != null)
                 .Collect();
+
+            context.CompilationProvider.Select((compilation, _) => compilation.References);
 
             var assemblyNameProvider = context.CompilationProvider.Select((compilation, _) => compilation.AssemblyName);
 
@@ -69,21 +72,7 @@ namespace Pmad.PreBuiltMEF.SourceGeneration
                 {
                     if (!part!.IsSealed && part.MemberImports.Any(i=> !i.Infos.IsPublic && !i.Infos.IsInherited))
                     {
-                        sb.AppendLine($"  {(part.IsPublic?"public":"internal")} static void NonPublicImportsOf{part!.Type.Replace('.', '_')}<TPart>(PreBuiltPartBuilderBase<TPart> builder) where TPart : {part!.Type}");
-                        sb.AppendLine("  {");
-                        sb.Append("    builder");
-                        foreach (var memberImport in part.MemberImports.Where(i => !i.Infos.IsPublic && !i.Infos.IsInherited))
-                        {
-                            var method = "AddImport";
-                            if (memberImport.Mode >= ImportMode.Many)
-                            {
-                                method = "AddImportMany";
-                            }
-                            AddImport(sb, mapper, memberImport, method, $"(part, value) => part.{memberImport.Name} = value");
-                        }
-                        sb.AppendLine(";");
-                        sb.AppendLine("  }");
-                        sb.AppendLine();
+                        WriteNonPublicImports(sb, mapper, part);
                     }
                 }
 
@@ -96,15 +85,40 @@ namespace Pmad.PreBuiltMEF.SourceGeneration
             });
         }
 
+        private static void WriteNonPublicImports(System.Text.StringBuilder sb, MetadataMapperBuilder mapper, PartModel part)
+        {
+            sb.AppendLine($"  {(part.IsPublic ? "public" : "internal")} static void NonPublicImportsOf{part.Type.MethodName}<TPart{part.Type.GenericParametersPrefixed}>(PreBuiltPartBuilderBase<TPart> builder) where TPart : {part!.Type.FullReference} {part.Type.GenericConstraintsAsCSharp}");
+            sb.AppendLine("  {");
+            sb.Append("    builder");
+            foreach (var memberImport in part.MemberImports.Where(i => !i.Infos.IsPublic && !i.Infos.IsInherited))
+            {
+                AddImport(sb, mapper, memberImport, GetAddImportMethod(memberImport), $"(part, value) => part.{memberImport.Name} = value");
+            }
+            sb.AppendLine(";");
+            sb.AppendLine("  }");
+            sb.AppendLine();
+        }
+
+        private static string GetAddImportMethod(MemberImport memberImport)
+        {
+            var method = "AddImport";
+            if (memberImport.Mode >= ImportMode.Many)
+            {
+                method = "AddImportMany";
+            }
+
+            return method;
+        }
+
         private static void WritePart(System.Text.StringBuilder sb, PartModel part, MetadataMapperBuilder mapper)
         {
-            var partMethod = part.IsDiscoverable ? "AddPart" : "AddNonDiscoverablePart";
+            string partMethod = GetPartMethod(part);
 
             if (part.ImportingConstructorParameters != null)
             {
                 var sbAddImports = new System.Text.StringBuilder();
 
-                sb.Append($"    builder.{partMethod}<{part.Type}>(scope => new {part.Type}(");
+                sb.Append($"    builder.{partMethod}<{part.Type.FullName}>(scope => new {part.Type.FullName}(");
                 bool isFirst = true;
                 int index = 0;
                 foreach (var param in part.ImportingConstructorParameters)
@@ -131,7 +145,7 @@ namespace Pmad.PreBuiltMEF.SourceGeneration
             }
             else
             {
-                sb.Append($"    builder.{partMethod}<{part.Type}>()");
+                sb.Append($"    builder.{partMethod}<{part.Type.FullName}>()");
             }
 
             foreach (var metadata in part.Metadata)
@@ -175,22 +189,29 @@ namespace Pmad.PreBuiltMEF.SourceGeneration
             }
             foreach (var memberImport in part.MemberImports.Where(i => i.Infos.IsPublic || !i.Infos.IsExternal))
             {
-                var method = "AddImport";
-                if (memberImport.Mode >= ImportMode.Many)
-                {
-                    method = "AddImportMany";
-                }
-                AddImport(sb, mapper, memberImport, method, $"(part, value) => part.{memberImport.Name} = value");
+                AddImport(sb, mapper, memberImport, GetAddImportMethod(memberImport), $"(part, value) => part.{memberImport.Name} = value");
             }
 
-            var externalNonPublic = part.MemberImports.Where(i => !i.Infos.IsPublic && i.Infos.IsExternal).Select(i => $"{i.Infos.ContainingAssembly}._PreBuiltMEF.NonPublicImportsOf{i.Infos.ContainingType!.Replace('.', '_')}<{part.Type}>").Distinct();
-            foreach(var external in externalNonPublic)
+            foreach (var external in part.ExternalDependencies)
             {
                 sb.AppendLine();
                 sb.Append($"      .Apply({external})");
             }
 
             sb.AppendLine($";");
+        }
+
+        private static string GetPartMethod(PartModel part)
+        {
+            if (part.IsOnlyComposable)
+            {
+                return "AddComposable";
+            }
+            if (part.IsDiscoverable)
+            {
+                return "AddPart";
+            }
+            return "AddNonDiscoverablePart";
         }
 
         private static void AddImport(System.Text.StringBuilder sb, MetadataMapperBuilder mapper, ImportBase memberImport, string method, string body)

@@ -9,7 +9,10 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
     internal class PartModel
     {
         private readonly PartFlags flags;
-        public PartModel(string type, Dictionary<string, string> metadata, List<PartConstructorParameter>? importingConstructorParameters, List<PartExport> partExports, List<MemberImport> propertyImports, List<MemberExport> propertyExports, PartFlags flags)
+
+        public List<string> ExternalDependencies { get; }
+
+        public PartModel(SymbolReference type, Dictionary<string, string> metadata, List<PartConstructorParameter>? importingConstructorParameters, List<PartExport> partExports, List<MemberImport> propertyImports, List<MemberExport> propertyExports, PartFlags flags, List<string> externalDepencies)
         {
             Type = type;
             Metadata = metadata;
@@ -18,9 +21,10 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
             MemberImports = propertyImports;
             MemberExports = propertyExports;
             this.flags = flags;
+            ExternalDependencies = externalDepencies;
         }
 
-        public string Type { get; }
+        public SymbolReference Type { get; }
 
         public Dictionary<string, string> Metadata { get; }
 
@@ -46,19 +50,23 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
 
         public bool IsGenericTypeDefinition => flags.HasFlag(PartFlags.GenericTypeDefinition);
 
+        public bool IsOnImportsSatisfied => flags.HasFlag(PartFlags.OnImportsSatisfied);
+
         public bool CanConstruct => (HasEmptyConstructor || HasImportingConstructor) && !IsGenericTypeDefinition && !IsAbstract;
+
+        public bool IsOnlyComposable => MemberExports.Count == 0 && PartExports.Count == 0  && MemberImports.Count > 0 && CanConstruct;
 
         public static bool IsTargeted(SyntaxNode node)
         {
             if (node is ClassDeclarationSyntax classDeclaration)
             {
                 // Exclude static and abstract classes
-                return !classDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword) || m.IsKind(SyntaxKind.AbstractKeyword));
+                return !classDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword));
             }
             return false;
         }
 
-        public static PartModel? Create(INamedTypeSymbol symbol)
+        public static PartModel? Create(INamedTypeSymbol symbol, string builtClass = "_PreBuiltMEF")
         {
             var importingConstructorArguments = GetImportingConstructorParameters(symbol);
 
@@ -72,17 +80,55 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
 
             if (importingConstructorArguments != null || exports.Count > 0 || propexports.Count > 0 || propimports.Count > 0)
             {
+                List<string> externalDependencies = GetExternalNonPublicImports(symbol, builtClass);
+
                 return new PartModel(
-                    symbol.ToDisplayString(),
+                    SymbolReference.Create(symbol),
                     GetMetadata(symbol),
                     importingConstructorArguments,
                     exports,
                     propimports,
                     propexports,
-                    GetPartFlags(symbol, exports, propexports));
+                    GetPartFlags(symbol, exports, propexports),
+                    externalDependencies);
             }
 
             return null;
+        }
+
+        private static List<string> GetExternalNonPublicImports(INamedTypeSymbol symbol, string builtClass)
+        {
+            var externalDependencies = new List<string>();
+
+            var preBuiltMefTypes = new List<INamedTypeSymbol>();
+            var current = symbol.BaseType;
+            while (current != null && current.SpecialType != SpecialType.System_Object)
+            {
+                var assembly = current.ContainingAssembly;
+                if (!SymbolEqualityComparer.Default.Equals(assembly, symbol.ContainingAssembly))
+                {
+                    var preBuiltMefType = assembly.GetTypeByMetadataName($"{assembly.Name}.{builtClass}");
+                    if (preBuiltMefType != null)
+                    {
+                        var reference = SymbolReference.Create(current);
+                        var nonPublicImports = preBuiltMefType.GetMembers($"NonPublicImportsOf{reference.MethodName}").OfType<IMethodSymbol>().FirstOrDefault();
+                        if (nonPublicImports != null)
+                        {
+                            if (current.TypeArguments.Length > 0)
+                            {
+                                externalDependencies.Add($"{assembly.Name}.{builtClass}.{nonPublicImports.Name}<{symbol.ToDisplayString()},{string.Join(",",current.TypeArguments.Select(a => a.ToDisplayString()))}>");
+                            }
+                            else
+                            {
+                                externalDependencies.Add($"{assembly.Name}.{builtClass}.{nonPublicImports.Name}");
+                            }
+                        }
+                    }
+                }
+                current = current.BaseType;
+            }
+
+            return externalDependencies;
         }
 
         private static PartFlags GetPartFlags(INamedTypeSymbol symbol, List<PartExport> exports, List<MemberExport> propexports)
@@ -112,6 +158,10 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
             {
                 flags |= PartFlags.Abstract;
             }
+            if (symbol.AllInterfaces.Any(i => i.ToDisplayString() == "System.ComponentModel.Composition.IPartImportsSatisfiedNotification"))
+            {
+                flags |= PartFlags.OnImportsSatisfied;
+            }
             return flags;
         }
 
@@ -136,21 +186,34 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
             return true;
         }
 
+        static IEnumerable<T> GetAll<T>(INamedTypeSymbol symbol)
+        {
+            var current = symbol;
+            while (current != null)
+            {
+                foreach (var prop in current.GetMembers().OfType<T>())
+                {
+                    yield return prop;
+                }
+                current = current.BaseType;
+            }
+        }
+
         private static void GetProperties(INamedTypeSymbol symbol, List<MemberExport> propexports, List<MemberImport> propimports)
         {
             foreach (var prop in symbol.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic))
             {
-                //if (SymbolEqualityComparer.Default.Equals(prop.ContainingType, symbol))
-                //{
                 // Exports are only valid if the property is declared in the current type, not inherited
                 foreach (var exportAttr in prop.GetAttributes().Where(attr =>
                     attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ExportAttribute"))
                 {
                     propexports.Add(new MemberExport(prop.Name, ContractReference.Get(prop.Type, exportAttr), GetExportMetadata(prop)));
                 }
-                //}
+            }
 
-                foreach (var importAttr in prop.GetAttributes().Where(attr =>
+            foreach (var prop in GetAll<IPropertySymbol>(symbol).Where(p => !p.IsStatic))
+            {
+                    foreach (var importAttr in prop.GetAttributes().Where(attr =>
                     attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ImportAttribute"))
                 {
                     var mode = GetImportMode(prop.Type, out var type, out var metadata);
@@ -248,8 +311,10 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
                 {
                     propexports.Add(new MemberExport(prop.Name, ContractReference.Get(prop.Type, exportAttr), GetExportMetadata(prop)));
                 }
-
-                foreach (var importAttr in prop.GetAttributes().Where(attr =>
+            }
+            foreach (var prop in GetAll<IFieldSymbol>(symbol).Where(p => !p.IsStatic))
+            {
+                    foreach (var importAttr in prop.GetAttributes().Where(attr =>
                     attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.Composition.ImportAttribute"))
                 {
                     var mode = GetImportMode(prop.Type, out var type, out var metadata);

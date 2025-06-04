@@ -29,6 +29,12 @@ namespace PreBuiltMEFDemo
 
         [ImportMany(AllowRecomposition = true)]
         public IEnumerable<IExportA1>? A1Many { get; set; }
+
+        [Import]
+        public PartC C { get; set; }
+
+        [Import]
+        public PartD D { get; set; }
     }
 
 }

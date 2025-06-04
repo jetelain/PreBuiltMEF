@@ -2,6 +2,7 @@
 using System.ComponentModel.Composition.Primitives;
 using System.Diagnostics;
 using BenchmarkDotNet.Running;
+using LibraryA;
 using Microsoft.Extensions.DependencyInjection;
 using Pmad.PreBuiltMEF.MsDependencyInjection;
 
@@ -60,6 +61,7 @@ namespace PreBuiltMEFDemo
             //    .AddImport<IExportA1>((part, value) => part.A1 = value);
 
             _PreBuiltMEF.RegisterAllParts(builder);
+            LibraryA._PreBuiltMEF.RegisterAllParts(builder);
 
             return builder.Build();
         }
@@ -69,7 +71,7 @@ namespace PreBuiltMEFDemo
             var builder = new ServiceCollection();
 
             _PreBuiltMsDI.RegisterAllParts(builder);
-
+            LibraryA._PreBuiltMsDI.RegisterAllParts(builder);
             return builder;
         }
 
@@ -81,7 +83,7 @@ namespace PreBuiltMEFDemo
 
         public static ComposablePartCatalog CreateCatalogReflection()
         {
-            return new AssemblyCatalog(typeof(Program).Assembly);
+            return new AggregateCatalog(new AssemblyCatalog(typeof(Program).Assembly), new AssemblyCatalog(typeof(ExtComposable).Assembly));
         }
     }
 }

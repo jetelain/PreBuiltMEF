@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Pmad.PreBuiltMEF.SourceGeneration.Model;
@@ -18,7 +20,7 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection.SourceGeneration
                         var classDecl = (Microsoft.CodeAnalysis.CSharp.Syntax.ClassDeclarationSyntax)ctx.Node;
                         if (!(ctx.SemanticModel.GetDeclaredSymbol(classDecl) is INamedTypeSymbol symbol))
                             return null;
-                        return PartModel.Create(symbol);
+                        return PartModel.Create(symbol, "_PreBuiltMsDI");
                     })
                 .Where(c => c != null)
                 .Collect();
@@ -48,12 +50,23 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection.SourceGeneration
 
                 foreach (var part in parts)
                 {
-                    WritePart(sb, part!, mapper);
-                    sb.AppendLine();
+                    if (part!.CanConstruct)
+                    {
+                        WritePart(sb, part!, mapper);
+                        sb.AppendLine();
+                    }
                 }
 
 
                 sb.AppendLine("  }");
+
+                foreach (var part in parts)
+                {
+                    if (!part!.IsSealed && part.MemberImports.Any(i => !i.Infos.IsPublic && !i.Infos.IsInherited))
+                    {
+                        WriteNonPublicImports(sb, mapper, part);
+                    }
+                }
 
                 mapper.AppendTo(sb);
                 sb.AppendLine("}");
@@ -63,11 +76,25 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection.SourceGeneration
             });
         }
 
+        private void WriteNonPublicImports(StringBuilder sb, MetadataMapperBuilder mapper, PartModel part)
+        {
+            sb.AppendLine($"  {(part.IsPublic ? "public" : "internal")} static void NonPublicImportsOf{part.Type.MethodName}<TPart{part.Type.GenericParametersPrefixed}>(TPart part, System.IServiceProvider sp) where TPart : {part!.Type.FullReference} {part.Type.GenericConstraintsAsCSharp}");
+            sb.AppendLine("  {");
+            foreach (var memberImport in part.MemberImports.Where(i => !i.Infos.IsPublic && !i.Infos.IsInherited))
+            {
+                sb.Append($"      part.{memberImport.Name} = ");
+                AppendImportCall(sb, mapper, memberImport);
+                sb.AppendLine(";");
+            }
+            sb.AppendLine("  }");
+            sb.AppendLine();
+        }
+
         private static void WritePart(System.Text.StringBuilder sb, PartModel part, MetadataMapperBuilder mapper)
         {
-            sb.AppendLine($"    services.AddPart<{part.Type}>(sp =>");
+            sb.AppendLine($"    services.AddPart<{part.Type.FullName}>(sp =>");
             sb.AppendLine("    {");
-            sb.Append($"      var part = new {part.Type}(");
+            sb.Append($"      var part = new {part.Type.FullName}(");
             if (part.ImportingConstructorParameters != null)
             {
                 bool isFirst = true;
@@ -87,19 +114,26 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection.SourceGeneration
             }
 
             sb.AppendLine(");");
-            foreach (var memberImport in part.MemberImports)
+            foreach (var memberImport in part.MemberImports.Where(i => i.Infos.IsPublic || !i.Infos.IsExternal))
             {
                 sb.Append($"      part.{memberImport.Name} = ");
                 AppendImportCall(sb, mapper, memberImport);
                 sb.AppendLine(";");
             }
-            sb.AppendLine("      (part as System.ComponentModel.Composition.IPartImportsSatisfiedNotification)?.OnImportsSatisfied();");
+            foreach (var external in part.ExternalDependencies)
+            {
+                sb.AppendLine($"      {external}(part,sp);");
+            }
+            if (part.IsOnImportsSatisfied)
+            {
+                sb.AppendLine("      (part as System.ComponentModel.Composition.IPartImportsSatisfiedNotification)?.OnImportsSatisfied();");
+            }
             sb.AppendLine("      return part;");
             sb.AppendLine("    });");
 
             foreach (var partExport in part.PartExports)
             {
-                sb.Append($"    services.RegisterExport<{part.Type},{partExport.Type}>(");
+                sb.Append($"    services.RegisterExport<{part.Type.FullName},{partExport.Type}>(");
                 if (!string.IsNullOrEmpty(partExport.ContractName))
                 {
                     sb.Append($"\"{partExport.ContractName}\", ");
@@ -115,7 +149,7 @@ namespace Pmad.PreBuiltMEF.MsDependencyInjection.SourceGeneration
 
             foreach (var memberExport in part.MemberExports)
             {
-                sb.Append($"    services.RegisterExport<{part.Type},{memberExport.Type}>(");
+                sb.Append($"    services.RegisterExport<{part.Type.FullName},{memberExport.Type}>(");
                 if (!string.IsNullOrEmpty(memberExport.ContractName))
                 {
                     sb.Append($"\"{memberExport.ContractName}\", ");

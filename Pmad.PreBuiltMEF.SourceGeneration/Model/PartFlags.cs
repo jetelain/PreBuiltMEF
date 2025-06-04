@@ -12,5 +12,6 @@ namespace Pmad.PreBuiltMEF.SourceGeneration.Model
         EmptyConstructor = 8,
         GenericTypeDefinition = 16,
         Abstract = 32,
+        OnImportsSatisfied = 64,
     }
 }
