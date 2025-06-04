@@ -6,10 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using LibraryA;
 
-namespace PreBuiltMEFDemo
+namespace PreBuiltMEFDemo.Samples
 {
     [Export]
-    internal class PartC : ExtPartBase
+    internal class PartD : GenericExtPartBase<string>
     {
 
     }

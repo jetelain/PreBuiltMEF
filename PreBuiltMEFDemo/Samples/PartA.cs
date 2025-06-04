@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.Composition;
 
-namespace PreBuiltMEFDemo
+namespace PreBuiltMEFDemo.Samples
 {
     [Export(typeof(IExportA))]
     [Export("NamedA",typeof(IExportA))]

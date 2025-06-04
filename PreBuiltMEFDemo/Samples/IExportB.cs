@@ -1,4 +1,4 @@
-﻿namespace PreBuiltMEFDemoAOT
+﻿namespace PreBuiltMEFDemo.Samples
 {
     internal interface IExportB
     {

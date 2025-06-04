@@ -1,11 +1,9 @@
 ﻿using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition.Primitives;
-using BenchmarkDotNet.Configs;
-using BenchmarkDotNet.Environments;
-using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using Microsoft.Extensions.DependencyInjection;
 using Pmad.PreBuiltMEF.MsDependencyInjection;
+using PreBuiltMEFDemo.Samples;
 
 namespace PreBuiltMEFDemoAOT
 {
@@ -21,6 +19,7 @@ namespace PreBuiltMEFDemoAOT
             BenchmarkRunner.Run<ComposeBenchmark>(null, args);
         }
 
+
         public static IExportB CreateContainerAndGetPartB(ComposablePartCatalog catalog1)
         {
             var container1 = new CompositionContainer(catalog1);
@@ -31,14 +30,16 @@ namespace PreBuiltMEFDemoAOT
         {
             var builder = new Pmad.PreBuiltMEF.PreBuiltCatalogBuilder();
             _PreBuiltMEF.RegisterAllParts(builder);
+            LibraryA._PreBuiltMEF.RegisterAllParts(builder);
+
             return builder.Build();
         }
+
         public static ServiceCollection CreateServiceCollection()
         {
             var builder = new ServiceCollection();
-
             _PreBuiltMsDI.RegisterAllParts(builder);
-
+            LibraryA._PreBuiltMsDI.RegisterAllParts(builder);
             return builder;
         }
 

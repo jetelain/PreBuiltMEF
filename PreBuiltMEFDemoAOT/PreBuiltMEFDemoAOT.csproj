@@ -12,8 +12,16 @@
     <PackageReference Include="BenchmarkDotNet" Version="0.15.0" />
     <PackageReference Include="System.ComponentModel.Composition" Version="9.0.5" />
   </ItemGroup>
-
+	
 	<ItemGroup>
+		<Compile Include="..\PreBuiltMEFDemo\Samples\**">
+			<Link>Samples\%(RecursiveDir)%(Filename)%(Extension)</Link>
+		</Compile>
+	</ItemGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\LibraryA\LibraryA.csproj" />
+
 		<ProjectReference Include="..\Pmad.PreBuiltMEF\Pmad.PreBuiltMEF.csproj" />
 		<ProjectReference Include="..\Pmad.PreBuiltMEF.SourceGeneration\Pmad.PreBuiltMEF.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 

@@ -1,4 +1,4 @@
-﻿namespace PreBuiltMEFDemo
+﻿namespace PreBuiltMEFDemo.Samples
 {
     public interface IMetadata1
     {

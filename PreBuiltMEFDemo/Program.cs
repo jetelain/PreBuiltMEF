@@ -1,11 +1,10 @@
 ﻿using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition.Primitives;
-using System.Diagnostics;
-using System.Linq;
 using BenchmarkDotNet.Running;
 using LibraryA;
 using Microsoft.Extensions.DependencyInjection;
 using Pmad.PreBuiltMEF.MsDependencyInjection;
+using PreBuiltMEFDemo.Samples;
 
 namespace PreBuiltMEFDemo
 {
@@ -45,21 +44,6 @@ namespace PreBuiltMEFDemo
         public static ComposablePartCatalog CreateCatalogPrebuilt()
         {
             var builder = new Pmad.PreBuiltMEF.PreBuiltCatalogBuilder();
-
-            //builder.AddPart<PartA>()
-            //    .AddMetadata("Metadata1", "MetadataA")
-            //    .AddExport<IExportA>(part => part)
-            //    .AddExport<IExportA>("NamedA", part => part)
-            //    .AddExport<IExportA1>(part => part.Propperty1)
-            //    .AddExport<IExportA1>("NamedA1", part => part.Propperty2);
-
-            //builder.AddPart<PartB>(scope => new PartB(scope.Import<IExportA>(), scope.Import<IExportA1>("NamedA1")))
-            //    .AddConstructorImport<IExportA>()
-            //    .AddConstructorImport<IExportA1>("NamedA1")
-            //    .AddMetadata("Metadata1", "MetadataB")
-            //    .AddExport<IExportB>(part => part)
-            //    .AddImport<IExportA>("NamedA", (part, value) => part.A = value)
-            //    .AddImport<IExportA1>((part, value) => part.A1 = value);
 
             _PreBuiltMEF.RegisterAllParts(builder);
             LibraryA._PreBuiltMEF.RegisterAllParts(builder);

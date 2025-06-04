@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.Composition;
 
-namespace PreBuiltMEFDemo
+namespace PreBuiltMEFDemo.Samples
 {
     [Export(typeof(IExportB))]
     [PartMetadata("Metadata1", "MetadataB")]
