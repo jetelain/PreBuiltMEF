@@ -10,6 +10,7 @@ namespace Pmad.PreBuiltMEF
     {
         private readonly List<Func<ComposablePartDefinition>> parts = new List<Func<ComposablePartDefinition>>();
         private readonly List<Func<ComposablePartDefinition>> nonDiscoverableParts = new List<Func<ComposablePartDefinition>>();
+        private readonly List<Func<IPreBuiltComposableDefinition>> composable = new List<Func<IPreBuiltComposableDefinition>>();
 
         public PreBuiltCatalogBuilder()
         {
@@ -27,7 +28,6 @@ namespace Pmad.PreBuiltMEF
             return builder;
         }
 
-
         public PreBuiltPartBuilder<T> AddNonDiscoverablePart<T>() where T : class, new()
         {
             return AddNonDiscoverablePart<T>(_ => new T());
@@ -42,12 +42,19 @@ namespace Pmad.PreBuiltMEF
 
         public PreBuiltPartBuilderBase<T> AddComposable<T>() where T : class
         {
-            return new PreBuiltComposableBuilder<T>();
+            var builder = new PreBuiltComposableBuilder<T>();
+            composable.Add(builder.Build);
+            return builder;
         }
 
         public ComposablePartCatalog Build()
         {
             return new PreBuiltCatalog(parts.Select(p => p()).ToList());
+        }
+
+        public PreBuiltCompositionHelper CreateHelper()
+        {
+            return new PreBuiltCompositionHelper(nonDiscoverableParts.Select(p => p()).ToList(), composable.Select(p => p()));
         }
     }
 }

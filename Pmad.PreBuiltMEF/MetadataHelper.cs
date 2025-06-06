@@ -9,6 +9,8 @@ namespace Pmad.PreBuiltMEF
     {
         private const string ExportTypeIdentity = "ExportTypeIdentity";
 
+        internal static readonly Dictionary<string, object?> None = new Dictionary<string, object?>(0);
+
         private class Holder<TExport>
         {
             public static readonly string FullName = typeof(TExport).FullName!;

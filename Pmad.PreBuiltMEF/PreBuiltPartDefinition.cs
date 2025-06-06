@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition.Primitives;
+using System.Linq;
 
 namespace Pmad.PreBuiltMEF
 {
-    internal sealed class PreBuiltPartDefinition<TPart> : ComposablePartDefinition where TPart : class
+    internal sealed class PreBuiltPartDefinition<TPart> : ComposablePartDefinition, IPreBuildPartDefinition where TPart : class
     {
         private readonly Func<object[], TPart> factory;
         private readonly List<PreBuiltExportDefinition<TPart>> exportDefinitions;
@@ -31,9 +32,16 @@ namespace Pmad.PreBuiltMEF
 
         public override IDictionary<string, object?> Metadata => metadata;
 
+        public Type TargetType => typeof(TPart);
+
         public override ComposablePart CreatePart()
         {
             return new PreBuiltComposablePart<TPart>(this);
+        }
+
+        public IPreBuiltComposableDefinition ToComposableDefinition()
+        {
+            return new PreBuiltComposableDefinition<TPart>(exportDefinitions, importDefinitions.Where(i => !i.IsPrerequisite).ToList());
         }
     }
 }

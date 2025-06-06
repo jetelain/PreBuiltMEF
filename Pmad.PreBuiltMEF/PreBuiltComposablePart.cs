@@ -5,7 +5,7 @@ using System.ComponentModel.Composition.Primitives;
 
 namespace Pmad.PreBuiltMEF
 {
-    internal sealed class PreBuiltComposablePart<TPart> : ComposablePart where TPart : class
+    internal sealed class PreBuiltComposablePart<TPart> : ComposablePart, IPreBuiltComposablePart where TPart : class
     {
         private readonly PreBuiltPartDefinition<TPart> definition;
         private object?[]? ctorArray;
@@ -24,6 +24,8 @@ namespace Pmad.PreBuiltMEF
         public override IEnumerable<ExportDefinition> ExportDefinitions => definition.ExportDefinitions;
 
         public override IEnumerable<ImportDefinition> ImportDefinitions => definition.ImportDefinitions;
+
+        public object? Instance => instance;
 
         public override object? GetExportedValue(ExportDefinition definition)
         {
